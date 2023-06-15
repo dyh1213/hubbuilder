@@ -1,0 +1,26 @@
+﻿[
+    {
+        "Concept_Name": "Dota 2",
+        "ArtConcept": {
+            "ArtConcept_Name": "Dota 2 style",
+            "Art_Styles": [ "Digital Art", "Concept Art", "3D Modeling" ],
+            "Medium": "Digital",
+            "Environment": "Fantasy world",
+            "Color": "Vibrant",
+            "Mood": "Dramatic",
+            "Composition": "Character-focused",
+            "relevant_artists": [ "Wei Wang", "Braydan Barrett", "Mike Azevedo" ]
+        },
+        "Entity": {
+            "Entity_Class": "Game",
+            "Entity_Category": "Multiplayer online battle arena"
+        },
+        "summary": "Dota 2's artistic style can be classified as digital art with elements of concept art and 3D modeling. Set in a fantasy world, the game's art focuses on dramatic, character-focused compositions with vibrant colors. The artwork for the game was created by various artists including Wei Wang and Braydan Barrett."
+    }
+]
+
+
+
+
+
+

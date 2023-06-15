@@ -1,0 +1,39 @@
+﻿{
+  "Concepts": [],
+  "Lists": [
+    {
+      "Id": "20000000-024a-44e5-8844-998342022971",
+      "Title": "Art Styles"
+    },
+    {
+      "Id": "20000000-3467-4e75-bed2-fa727f9e2707",
+      "Title": "Art Mediums"
+    },
+    {
+      "Id": "20000000-70bb-4928-ac4a-6e99b9b6441f",
+      "Title": "Evironments"
+    },
+    {
+      "Id": "20000000-069a-4b2a-849d-e1e3fddb99a0",
+      "Title": "Lightings"
+    },
+    {
+      "Id": "20000000-70bb-4928-ac4a-6e99b9b6441f",
+      "Title": "Colors"
+    },
+    {
+      "Id": "20000000-8dca-46f4-99a4-2f1457396504",
+      "Title": "Moods"
+    },
+    {
+      "Id": "20000000-14b6-4367-b302-0cd4e748aea4",
+      "Title": "Compositions"
+    },
+    {
+      "Id": "20000000-1e9e-4e93-be44-e4b69a2c3590",
+      "Title": "Entities"
+    }
+  ],
+  "Memberships": [],
+  "ConceptMarkdown": []
+}
