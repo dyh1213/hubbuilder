@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using ChtGPTHubBuilder.Objects;
-using ChtGPTHubBuilder.Objects_HubGenration;
+using GraphHub.Server.GitUploader;
+using GraphHub.Shared;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace ChtGPTHubBuilder
@@ -16,55 +18,21 @@ namespace ChtGPTHubBuilder
         // Static GraphData object that will be populated with JSON data
         public static GraphData graphData = new GraphData();
 
-        public static string HubConceptId = "10000000-024a-44e5-8844-998342022971";
-        public static string TbdParentId = "10000000-0000-0000-0000-000000000000";
+        public const string HubConceptId = "10000000-024a-44e5-8844-998342022971";
+        public const string TbdParentId = "10000000-0000-0000-0000-000000000000";
         // Static dictionary mapping ListName to its ID
-        public static Dictionary<ListName, string> ListIds = new Dictionary<ListName, string>()
-        {
-            //Major Items
-            { ListName.ArtStyles, "20000000-024a-44e5-8844-998342022971" },
-            { ListName.Properties, "20000000-b814-41a4-a2bd-9d346cc5ed0a" },
-            { ListName.Entities, "20000000-1e9e-4e93-be44-e4b69a2c3590" },
-
-            //Part of entities
-            { ListName.UnmappedEntities, "20000000-e3f3-4b7e-bad6-c8d1255168f2" },
-
-            //Properties
-            { ListName.ArtMediums, "20000000-3467-4e75-bed2-fa727f9e2707" },
-            { ListName.Environments, "20000000-70bb-4928-ac4a-6e99b9b6441f" },
-            { ListName.Lightings, "20000000-069a-4b2a-849d-e1e3fddb99a0" },
-            { ListName.Colors, "20000000-0327-46d9-b7d2-e80e60d56e0a" },
-            { ListName.Moods, "20000000-8dca-46f4-99a4-2f1457396504" },
-            { ListName.Compositions, "20000000-14b6-4367-b302-0cd4e748aea4" },
-        };
-
-        public static List<ListName> coreItems = new List<ListName>()
-        {
-            ListName.ArtStyles,
-            ListName.Properties,
-            ListName.Entities,
-        };
-
-        public static List<ListName> properties = new List<ListName>()
-        {
-            ListName.ArtMediums,
-            ListName.Environments,
-            ListName.Lightings,
-            ListName.Colors,
-            ListName.Moods,
-            ListName.Compositions
-        };
 
         public void Run()
         {
-            string? pathToGraphData = null;
+            string? pathToGraphDataSource = null;
+            //string? pathToGraphData = null;
             string pathToArtConcepts = "/Users/danielyeheskel-hai/Documents/ChatGPTResponses/DEST";
 
 
-            if (pathToGraphData != null)
+            if (pathToGraphDataSource != null)
             {
                 // Load GraphData from JSON file
-                string graphDataJson = File.ReadAllText(pathToGraphData);
+                string graphDataJson = File.ReadAllText(pathToGraphDataSource);
                 graphData = JsonSerializer.Deserialize<GraphData>(graphDataJson);
 
                 foreach (var item in graphData.Lists)
@@ -75,66 +43,14 @@ namespace ChtGPTHubBuilder
                     }
                 }
             }
-            else
-            {
-                graphData = new GraphData()
-                {
-                    Concepts = new List<ConceptData>(),
-                    Lists = new List<ConceptListData>(),
-                    Memberships = new List<MembershipData>(),
-                };
 
-                graphData.Concepts.Add(new ConceptData()
-                {
-                    Id = HubConceptId,
-                    Title = "Midjourney Core",
-                });
-
-                graphData.Concepts.Add(new ConceptData()
-                {
-                    Id = TbdParentId,
-                    Title = "TBD",
-                });
-
-                foreach (var item in ListIds)
-                {
-                    var list = new ConceptListData()
-                    {
-                        Id = item.Value,
-                        Title = item.Key.ToString(),
-                        PullFromListsIds = new List<string>()
-                    };
-
-                    if (coreItems.Contains(item.Key))
-                    {
-                        list.ParentConceptId = HubConceptId;
-                    }
-                    else
-                    {
-                        list.ParentConceptId = TbdParentId;
-                    }
-
-                    graphData.Lists.Add(list);
-                }
-
-                var propertyList = graphData.Lists.First(x => x.Id.Equals(ListIds[ListName.Properties]));
-                foreach (var item in properties)
-                {
-                    propertyList.PullFromListsIds.Add(ListIds[item]);
-                }
-
-                var entitiesList = graphData.Lists.First(x => x.Id.Equals(ListIds[ListName.Entities]));
-
-                entitiesList.PullFromListsIds.Add(ListIds[ListName.UnmappedEntities]);
-            }
-
-
+            else Intitilize();
 
             // Load all ArtisticConceptResponse JSON files in the directory
             DirectoryInfo d = new DirectoryInfo(pathToArtConcepts);
             FileInfo[] Files = d.GetFiles("*.json");
 
-            foreach (FileInfo file in Files)
+            foreach (FileInfo file in Files.OrderBy(x=>x.CreationTime))
             {
                 string artConceptJson = File.ReadAllText(file.FullName);
                 ArtisticConceptResponse conceptResponse = JsonSerializer.Deserialize<ArtisticConceptResponse>(artConceptJson);
@@ -143,15 +59,134 @@ namespace ChtGPTHubBuilder
                 HandleEntityConcept(conceptResponse);
             }
 
-            // Optionally, write the modified GraphData back to the file
-            string modifiedGraphDataJson = JsonSerializer.Serialize(graphData, new JsonSerializerOptions() { WriteIndented = true });
+            GitJsonSaver saver = new GitJsonSaver("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");
+            saver.UpdateGraph(graphData).GetAwaiter().GetResult();
+        }
 
-            if (pathToGraphData == null)
+        private static void Intitilize()
+        {
+            graphData = new GraphData()
             {
-                pathToGraphData = "newgraph.json";
+                Concepts = new List<ConceptData>(),
+                Lists = new List<ConceptListData>(),
+                Memberships = new List<MembershipData>(),
+                ConceptMarkdown = new List<ConceptMarkdown>(),
+            };
+
+            graphData.Concepts.Add(new ConceptData()
+            {
+                Id = HubConceptId,
+                Title = "Art Styles Knowledge Graph",
+                Description = "This is a large community built graph of all different types of art styles. This map helps you get better at using AI image generators like Midjourney, Doll-E, Stable Diffusion, and more. It also shows you famous artists and characters, and the special art styles they're known for"
+            });
+
+            graphData.Concepts.Add(new ConceptData()
+            {
+                Id = TbdParentId,
+                Title = "TBD",
+            });
+
+            foreach (var item in ListIds)
+            {
+                var list = new ConceptListData()
+                {
+                    Id = item.Value,
+                    Title = item.Key.ToString(),
+                    PullFromListsIds = new List<string>()
+                };
+
+                if (coreItems.Contains(item.Key))
+                {
+                    list.ParentConceptId = HubConceptId;
+                    switch (item.Key)
+                    {
+                        case ListName.ArtStyles:
+                            list.Title = "Art Styles";
+                            list.Description = "A list that contains all art styles pulled from other lists related to specific domains like Painting, Architercture, Graphic Design etc.";
+                            break;
+                        case ListName.Properties:
+                            list.Title = "Art Properties";
+                            list.Description = "A list that contains artisitc concepts like color, lighting, moods and more that can be used as additional information for a prompt.";
+                            break;
+                        case ListName.Entities:
+                            list.Title = "Art Entities";
+                            list.Description = "A collection of entities that have a definitive art style, this could be artists from a spefici field or other entities like tv-shows, games, studios etc.";
+                            break;
+                    }
+                }
+                else if (properties.Contains(item.Key))
+                {
+                    var parentConcept = new ConceptData()
+                    {
+                        Id = GenerateGuid(true),
+                        Title = item.Key.ToString().Remove(item.Key.ToString().Length - 1, 1),
+                    };
+                    graphData.Concepts.Add(parentConcept);
+
+                    switch (item.Key)
+                    {
+                        case ListName.ArtMediums:
+                            list.Title = "Art Mediums";
+                            list.Description = "eces. This can range from conventional mediums like oil, acrylic, watercolor, charcoal, to more contemporary ones like digital, mixed media, or installations.";
+                            break;
+                        case ListName.Environments:
+                            list.Title = "Environments";
+                            list.Description = "AThis is a catalogue of different environmental settings within art. This could include forests, cityscapes, seascapes, deserts, or abstract backgrounds, depicting the context and backdrop of the artwork.";
+                            break;
+                        case ListName.Lightings:
+                            list.Title = "Lighting Styles";
+                            list.Description = "The lightings list explores different types of illumination used in an artwork. This could be soft morning light, harsh midday light, artificial light, or magical surrealistic light, playing crucial roles in the art's ambiance and focus.";
+                            break;
+                        case ListName.Colors:
+                            list.Title = "Colors";
+                            list.Description = "This list describes the myriad of colors artists employ in their work. From primary, secondary, and tertiary hues, to monochrome or vibrant palettes, colors breathe life and emotion into the artwork.";
+                            break;
+                        case ListName.Moods:
+                            list.Title = "Moods";
+                            list.Description = "The moods list represents the range of emotions or feelings an artwork can evoke, like happiness, sadness, tranquility, mystery, anger or nostalgia. It's about the emotional resonance of an artwork.";
+                            break;
+                        case ListName.Compositions:
+                            list.Title = "Compositions";
+                            list.Description = "This list details different compositional techniques used in art. These may include rules like the Golden Ratio, Rule of Thirds, Symmetry or Asymmetry, leading lines, or framing, influencing the viewer's focus and the overall balance of the piece.";
+                            break;
+                    }
+
+                    list.ParentConceptId = parentConcept.Id;
+                }
+                else
+                {
+                    list.ParentConceptId = TbdParentId;
+                }
+
+                graphData.Lists.Add(list);
+
+                var metadata = new GraphHub.Database.Dto.GraphInfo()
+                {
+                    GraphId = "100",
+                    GraphDisplayName = "Text To Image",
+                    GraphUrlName = "text-to-image",
+                    GraphGitHubDatabaseUrl = "https://github.com/dyh1213/graphhub.data/tree/main/graphs_current/text-to-image",
+                    RootConcept = "10000000-024a-44e5-8844-998342022971"
+                };
+
+                graphData.GraphInfo = metadata;
             }
 
-            File.WriteAllText(pathToGraphData, modifiedGraphDataJson);
+            var propertyList = graphData.Lists.First(x => x.Id.Equals(ListIds[ListName.Properties]));
+            foreach (var item in properties)
+            {
+                propertyList.PullFromListsIds.Add(ListIds[item]);
+                var propertyConcept = graphData.Lists.First(x => x.Id.Equals(ListIds[item]));
+                graphData.Memberships.Add(new MembershipData()
+                {
+                    ConceptId = propertyConcept.ParentConceptId,
+                    ListId = propertyList.Id
+                });
+            }
+
+            var entitiesList = graphData.Lists.First(x => x.Id.Equals(ListIds[ListName.Entities]));
+
+            entitiesList.PullFromListsIds.Add(ListIds[ListName.UnmappedEntities]);
         }
 
         private static void HandleEntityConcept(ArtisticConceptResponse conceptResponse)
@@ -159,6 +194,11 @@ namespace ChtGPTHubBuilder
 
 
             string conceptName = conceptResponse.Concept_Name;
+            if (conceptName.Equals("Syd Mead"))
+            {
+                int i = 5;
+            }
+
             var artConcept = conceptResponse.ArtConcept;
 
             string? resultingID = null;
@@ -167,28 +207,30 @@ namespace ChtGPTHubBuilder
             {
                 string entityClass = conceptResponse.Entity.Entity_Class;
                 string entityCategory = conceptResponse.Entity.Entity_Category;
-                ConceptListData entityClassList = FindOrCreateList(entityClass, null, ListIds[ListName.Entities]); ; ;
+                ConceptListData entityClassList = FindOrCreateList(entityClass, null, ListIds[ListName.Entities]);
                 ConceptListData entityCategoryList = FindOrCreateList(entityCategory, null, entityClassList.Id);
                 ConceptData concept = FindOrCreateConcept(conceptName, conceptResponse.summary, entityCategoryList.Id);
+                //Check if it was previously created as a stub and remove that stub
                 resultingID = concept.Id;
             }
             if (conceptResponse.Entity == null)
             {
-                ConceptListData list = FindOrCreateList(conceptName, conceptResponse.summary, ListIds[ListName.ArtStyles]);
-                resultingID = list.Id;
-                foreach (var artist in artConcept.relevant_artists)
+                ConceptData concept = FindOrCreateConcept(conceptName, conceptResponse.summary, ListIds[ListName.ArtStyles]);
+                //ConceptListData list = FindOrCreateList(conceptName + " Styles", conceptResponse.summary, ListIds[ListName.ArtStyles], concept.Id);
+                resultingID = concept.Id;
+                if (artConcept.relevant_artists != null)
                 {
-                    ConceptData concept = FindOrCreateConcept(artist, null, resultingID);
-                    graphData.Memberships.Add(new MembershipData()
+                    foreach (var artist in artConcept.relevant_artists)
                     {
-                        ConceptId = concept.Id,
-                        ListId = ListIds[ListName.UnmappedEntities]
-                    });
+                        ConceptData artistConcept = FindOrCreateConcept(artist, null, ListIds[ListName.UnmappedEntities]);
+                    }
                 }
             }
+
             foreach (var style in artConcept.Art_Styles)
             {
-                ConceptListData list = FindOrCreateList(style, null, ListIds[ListName.ArtStyles]);
+                ConceptData concept = FindOrCreateConcept(style, null, ListIds[ListName.ArtStyles]);
+                //ConceptListData list = FindOrCreateList(style + " Styles", null, ListIds[ListName.ArtStyles], concept.Id);
             }
 
             ProcessAttribiteField(isEntity, resultingID, artConcept.Medium, ListName.ArtMediums);
@@ -203,22 +245,24 @@ namespace ChtGPTHubBuilder
         {
             if (attributeFieldValue != null)
             {
-                ConceptListData list = FindOrCreateList(attributeFieldValue, null, ListIds[attributeField]);
+                ConceptData concept = FindOrCreateConcept(attributeFieldValue, null, ListIds[attributeField]);
+                //ConceptListData list = FindOrCreateList(attributeFieldValue + "Styles", null, ListIds[attributeField], concept.Id);
+
                 if (isEntity)
                 {
-                    graphData.Memberships.Add(new MembershipData { ConceptId = resultingID, ListId = list.Id });
+                    //graphData.Memberships.Add(new MembershipData { ConceptId = resultingID, ListId = list.Id });
                 }
                 else
                 {
-                    if (!list.PullFromListsIds.Contains(resultingID))
-                    {
-                        list.PullFromListsIds.Add(resultingID);
-                    }
+                    //if (!list.PullFromListsIds.Contains(resultingID))
+                    //{
+                    //    list.PullFromListsIds.Add(resultingID);
+                    //}
                 }
             }
         }
 
-        private static ConceptListData FindOrCreateList(string title, string? summary, string parentListId)
+        private static ConceptListData FindOrCreateList(string title, string? summary, string parentListId, string parentConceptId = TbdParentId)
         {
             ConceptListData list = graphData.Lists.FirstOrDefault(l => l.Title == title);
 
@@ -276,6 +320,13 @@ namespace ChtGPTHubBuilder
                 {
                     concept.Description = summary;
                 }
+
+                //Remove Stubs
+                var checkIsStubExists = graphData.Memberships.FirstOrDefault(m => m.ConceptId == concept.Id && m.ListId == ListIds[ListName.UnmappedEntities]);
+                if (checkIsStubExists != null)
+                {
+                    graphData.Memberships.Remove(checkIsStubExists);
+                }
             }
 
             if (!graphData.Memberships.Any(m => m.ConceptId == concept.Id && m.ListId == listId))
@@ -294,6 +345,49 @@ namespace ChtGPTHubBuilder
 
             return value;
         }
+
+
+        public static Dictionary<string, string> Markdown = new Dictionary<string, string>()
+        {
+            //Major Items
+            {HubConceptId, "20000000-024a-44e5-8844-998342022971" },
+        };
+
+        public static Dictionary<ListName, string> ListIds = new Dictionary<ListName, string>()
+        {
+            //Major Items
+            { ListName.ArtStyles, "20000000-024a-44e5-8844-998342022971" },
+            { ListName.Properties, "20000000-b814-41a4-a2bd-9d346cc5ed0a" },
+            { ListName.Entities, "20000000-1e9e-4e93-be44-e4b69a2c3590" },
+
+            //Part of entities
+            { ListName.UnmappedEntities, "20000000-e3f3-4b7e-bad6-c8d1255168f2" },
+
+            //Properties
+            { ListName.ArtMediums, "20000000-3467-4e75-bed2-fa727f9e2707" },
+            { ListName.Environments, "20000000-70bb-4928-ac4a-6e99b9b6441f" },
+            { ListName.Lightings, "20000000-069a-4b2a-849d-e1e3fddb99a0" },
+            { ListName.Colors, "20000000-0327-46d9-b7d2-e80e60d56e0a" },
+            { ListName.Moods, "20000000-8dca-46f4-99a4-2f1457396504" },
+            { ListName.Compositions, "20000000-14b6-4367-b302-0cd4e748aea4" },
+        };
+
+        public static List<ListName> coreItems = new List<ListName>()
+        {
+            ListName.ArtStyles,
+            ListName.Properties,
+            ListName.Entities,
+        };
+
+        public static List<ListName> properties = new List<ListName>()
+        {
+            ListName.ArtMediums,
+            ListName.Environments,
+            ListName.Lightings,
+            ListName.Colors,
+            ListName.Moods,
+            ListName.Compositions
+        };
     }
 
     public enum ListName

@@ -127,7 +127,7 @@ namespace ChtGPTHubBuilder
                     new { role = "user", content = userInput }
                 },
                 max_tokens = 800,
-                model = "gpt-3.5-turbo"
+                model = "gpt-4"
             };
 
             var requestContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");

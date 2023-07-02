@@ -1,4 +1,5 @@
-﻿using System;
+﻿/*
+using System;
 namespace ChtGPTHubBuilder.Objects_HubGenration
 {
     public class GraphData
@@ -41,3 +42,4 @@ namespace ChtGPTHubBuilder.Objects_HubGenration
     }
 }
 
+*/

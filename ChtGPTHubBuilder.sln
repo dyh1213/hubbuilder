@@ -5,6 +5,8 @@ VisualStudioVersion = 25.0.1705.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChtGPTHubBuilder", "ChtGPTHubBuilder\ChtGPTHubBuilder.csproj", "{650A1035-D594-4295-87F1-36658DBE16B9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphHub.Database", "..\GraphHub\GraphHub.Database\GraphHub.Database.csproj", "{F9243105-7C4B-4C5F-A750-011B9EB2401E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{650A1035-D594-4295-87F1-36658DBE16B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{650A1035-D594-4295-87F1-36658DBE16B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{650A1035-D594-4295-87F1-36658DBE16B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9243105-7C4B-4C5F-A750-011B9EB2401E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9243105-7C4B-4C5F-A750-011B9EB2401E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9243105-7C4B-4C5F-A750-011B9EB2401E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9243105-7C4B-4C5F-A750-011B9EB2401E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

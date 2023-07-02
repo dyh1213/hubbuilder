@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <None Remove="Objects_HubGenration\" />
+    <None Remove="Saver\" />
   </ItemGroup>
   <ItemGroup>
     <None Update="UploadFile.json">
@@ -17,5 +18,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Objects_HubGenration\" />
+    <Folder Include="Saver\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Octokit" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\GraphHub\GraphHub.Database\GraphHub.Database.csproj" />
   </ItemGroup>
 </Project>
