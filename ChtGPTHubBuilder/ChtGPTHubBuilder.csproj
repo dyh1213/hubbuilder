@@ -10,6 +10,7 @@
   <ItemGroup>
     <None Remove="Objects_HubGenration\" />
     <None Remove="Saver\" />
+    <None Remove="Builder\" />
   </ItemGroup>
   <ItemGroup>
     <None Update="UploadFile.json">
@@ -19,6 +20,7 @@
   <ItemGroup>
     <Folder Include="Objects_HubGenration\" />
     <Folder Include="Saver\" />
+    <Folder Include="Builder\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Octokit" Version="6.0.0" />

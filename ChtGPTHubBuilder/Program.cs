@@ -13,16 +13,16 @@ Console.WriteLine("Hello, World!");
 //var upload = new GitJsonSaver("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");
 //await upload.SaveData(dic);
 
-
+/*
 Extractor ext = new Extractor();
 await ext.WriteConcepts();
+*/
 
 HubBuilder hubbuilder = new HubBuilder();
 var graphData = hubbuilder.Run();
 
-
 //var gotIDOptimized = OptimizeIDs.RunThis();
-GitJsonSaver saver = new GitJsonSaver("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", "main");
+GitJsonSaver saver = new GitJsonSaver("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", "testingbranch");
 GhPullRequest? pullrequest = new()
 {
     title = "testing",
