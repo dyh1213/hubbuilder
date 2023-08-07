@@ -22,7 +22,7 @@ var graphData = hubbuilder.Run();
 
 
 //var gotIDOptimized = OptimizeIDs.RunThis();
-//GitJsonSaver saver = new GitJsonSaver("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", "main");
+GitJsonSaver saver = new GitJsonSaver("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", "main");
 GhPullRequest? pullrequest = new()
 {
     title = "testing",
@@ -31,7 +31,7 @@ GhPullRequest? pullrequest = new()
     Execute = false   
 };
 
-//saver.UpdateGraph(graphData).GetAwaiter().GetResult();
+saver.UpdateGraph(graphData).GetAwaiter().GetResult();
 return;
 
 

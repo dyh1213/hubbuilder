@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Globalization;
+using System.Text.Json;
 using ChtGPTHubBuilder.Objects;
 using GraphHub.Shared;
 
@@ -12,13 +13,13 @@ namespace ChtGPTHubBuilder
         public const string HubConceptId = "10000000-024a-44e5-8844-998342022971";
         public const string TbdParentId = "10000000-0000-0000-0000-000000000000";
 
-        private const string ArtStylesId = "20000000-024a-44e5-8844-998342022971";
-        private const string ArtPropertiesId = "20000000-b814-41a4-a2bd-9d346cc5ed0a";
-        private const string ArtEntitiesId = "20000000-1e9e-4e93-be44-e4b69a2c3590";
+        private const string ArtStylesId = "1";
+        private const string ArtPropertiesId = "2";
+        private const string ArtEntitiesId = "3";
 
-        private const string knollingConcept = "10000000-1e9e-4e93-be44-e4bfd9a2c3590";
-        private const string steampunkConcept = "10000000-2f9e-4e93-be44-e4bfd9a2c3590";
-        private const string banksyConcept = "10000000-2f9e-4e93-be44-e4bfd9a2c5550";
+        private const string knollingConcept = "185";
+        private const string steampunkConcept = "271";
+        private const string banksyConcept = "272";
         // Static dictionary mapping ListName to its ID
 
         public GraphData Run()
@@ -55,6 +56,7 @@ namespace ChtGPTHubBuilder
             // Load all ArtisticConceptResponse JSON files in the directory
             DirectoryInfo d = new DirectoryInfo(pathToArtConcepts);
             FileInfo[] Files = d.GetFiles("*.json");
+            
 
             var totalCount = Files.Count();
             var currentCount = 1;
@@ -67,28 +69,103 @@ namespace ChtGPTHubBuilder
                 Console.WriteLine($"Item Name {conceptResponse.Concept_Name}");
                 Console.WriteLine($"Item ID {conceptResponse.Id}");
 
-                if (conceptResponse.Id == null) {
+                ProcessTitleCase(file, conceptResponse);
+
+                if (conceptResponse.Id == null)
+                {
                     conceptResponse.Id = currentCount.ToString();
                     string updatedJson = JsonSerializer.Serialize(conceptResponse, new JsonSerializerOptions() { WriteIndented = true });
                     File.WriteAllText(file.FullName, updatedJson);
                 }
 
-                /*
-
                 // Process each ArtisticConceptResponse
                 HandleEntityConcept(conceptResponse);
 
                 var isValid = ValidateGraphData();
-                if (!isValid) {
+                if (!isValid)
+                {
                     Console.WriteLine("Graph is no longer valid");
                     throw new Exception("Graph is no longer valid");
                 }
 
-                */
+
                 currentCount++;
             }
 
             return graphData;
+        }
+
+        private static void ProcessTitleCase(FileInfo file, ArtisticConceptResponse conceptResponse)
+        {
+            string original = JsonSerializer.Serialize(conceptResponse, new JsonSerializerOptions() { WriteIndented = true });
+
+            conceptResponse.Concept_Name = ToCustomTitleCase(conceptResponse.Concept_Name);
+            conceptResponse.ArtConcept.Color = ToCustomTitleCase(conceptResponse.ArtConcept.Color);
+            conceptResponse.ArtConcept.Composition = ToCustomTitleCase(conceptResponse.ArtConcept.Composition);
+            conceptResponse.ArtConcept.Environment = ToCustomTitleCase(conceptResponse.ArtConcept.Environment);
+            conceptResponse.ArtConcept.Medium = ToCustomTitleCase(conceptResponse.ArtConcept.Medium);
+            conceptResponse.ArtConcept.Mood = ToCustomTitleCase(conceptResponse.ArtConcept.Mood);
+            conceptResponse.ArtConcept.Lighting = ToCustomTitleCase(conceptResponse.ArtConcept.Lighting);
+
+            for (int i = 0; i < (conceptResponse.ArtConcept.Art_Styles?.Count() ?? 0); i++)
+            {
+                conceptResponse.ArtConcept.Art_Styles[i] = ToCustomTitleCase(conceptResponse.ArtConcept.Art_Styles[i]);
+            }
+
+            for (int i = 0; i < (conceptResponse.ArtConcept.relevant_artists?.Count() ?? 0); i++)
+            {
+                conceptResponse.ArtConcept.relevant_artists[i] = ToCustomTitleCase(conceptResponse.ArtConcept.relevant_artists[i]);
+            }
+
+            if (conceptResponse.Entity != null) {
+                conceptResponse.Entity.Entity_Category = ToCustomTitleCase(conceptResponse.Entity.Entity_Category);
+                conceptResponse.Entity.Entity_Class = ToCustomTitleCase(conceptResponse.Entity.Entity_Class);
+            }
+
+
+            string updatedString = JsonSerializer.Serialize(conceptResponse, new JsonSerializerOptions() { WriteIndented = true });
+            if (!updatedString.Equals(original))
+            {
+                File.WriteAllText(file.FullName, updatedString);
+            }
+
+        }
+
+        private static string ToCustomTitleCase(string conceptName)
+        {
+            if (string.IsNullOrEmpty(conceptName)) return conceptName;
+
+            //Clean Up Data
+            var titleCase = ToCustomTitleCase_internal(conceptName);
+            if (!conceptName.Equals(titleCase))
+            {
+                Console.WriteLine($"Change FROM: {conceptName} TO: {titleCase}");
+                return titleCase;
+            }
+            return conceptName;
+        }
+
+        public static string ToCustomTitleCase_internal(string str)
+        {
+            var lowerCaseWords = new HashSet<string>
+            {
+                "a", "an", "the", "and", "but", "or", "for", "nor", "on", "at", "to", "from", "by", "of"
+            };
+
+            var split = str.Split(' ');
+            for (var i = 0; i < split.Length; i++)
+            {
+                // Always capitalize the first and last word
+                if (i == 0 || i == split.Length - 1 || !lowerCaseWords.Contains(split[i].ToLower()))
+                {
+                    // Capitalize the first character only
+                    if (split[i].Length > 0)
+                    {
+                        split[i] = char.ToUpper(split[i][0]) + split[i].Substring(1);
+                    }
+                }
+            }
+            return string.Join(' ', split);
         }
 
         public bool ValidateGraphData()
@@ -144,7 +221,7 @@ namespace ChtGPTHubBuilder
             Console.WriteLine($"ERROR: Could not find pulled list {pulledList?.Title}({pulledList?.Id}) in LISTS! Puller is {pullerList?.Title}({pullerList?.Id}) ");
         }
 
-        private static void HandleEntityConcept(ArtisticConceptResponse conceptResponse)
+        private void HandleEntityConcept(ArtisticConceptResponse conceptResponse)
         {
             string conceptName = conceptResponse?.Concept_Name;
 
@@ -192,7 +269,7 @@ namespace ChtGPTHubBuilder
             ProcessAttribiteField(isEntity, resultingID, artConcept.Composition, ListName.Compositions);
         }
 
-        private static void ProcessAttribiteField(bool isEntity, string? resultingID, string attributeFieldValue, ListName attributeField)
+        private void ProcessAttribiteField(bool isEntity, string? resultingID, string attributeFieldValue, ListName attributeField)
         {
             if (attributeFieldValue != null)
             {
@@ -213,7 +290,7 @@ namespace ChtGPTHubBuilder
             }
         }
 
-        private static ConceptListData FindOrCreateList(string title, string? summary, string parentListId, string parentConceptId = TbdParentId)
+        private ConceptListData FindOrCreateList(string title, string? summary, string parentListId, string parentConceptId = TbdParentId)
         {
             ConceptListData list = graphData.Lists.FirstOrDefault(l => l.Title == title);
 
@@ -253,7 +330,7 @@ namespace ChtGPTHubBuilder
             return list;
         }
 
-        private static ConceptData FindOrCreateConcept(string title, string? summary, string listId, string type, string conceptId = null)
+        private ConceptData FindOrCreateConcept(string title, string? summary, string listId, string type, string conceptId = null)
         {
             ConceptData concept = graphData.Concepts.FirstOrDefault(c => c.Title == title);
 
@@ -310,13 +387,13 @@ namespace ChtGPTHubBuilder
             return concept;
         }
 
-        private static string GenerateGuid(bool IsConcept)
+        private string GenerateGuid(bool IsConcept)
         {
-            var guid = Guid.NewGuid().ToString();
-            var start = (IsConcept) ? "10000000" : "20000000";
-            var value = start + guid.Substring(8);
+            //var guid = Guid.NewGuid().ToString();
+            var start = (IsConcept) ? graphData.Concepts.Count() + 1000 : graphData.Lists.Count() + 1000;
+            //var value = start + guid.Substring(8);
 
-            return value;
+            return start.ToString();
         }
 
 
@@ -328,15 +405,15 @@ namespace ChtGPTHubBuilder
             { ListName.Entities, ArtEntitiesId },
 
             //Part of entities
-            { ListName.UnmappedEntities, "20000000-e3f3-4b7e-bad6-c8d1255168f2" },
+            { ListName.UnmappedEntities, "999" },
 
             //Properties
-            { ListName.ArtMediums, "20000000-3467-4e75-bed2-fa727f9e2707" },
-            { ListName.Environments, "20000000-70bb-4928-ac4a-6e99b9b6441f" },
-            { ListName.Lightings, "20000000-069a-4b2a-849d-e1e3fddb99a0" },
-            { ListName.Colors, "20000000-0327-46d9-b7d2-e80e60d56e0a" },
-            { ListName.Moods, "20000000-8dca-46f4-99a4-2f1457396504" },
-            { ListName.Compositions, "20000000-14b6-4367-b302-0cd4e748aea4" },
+            { ListName.ArtMediums, "4" },
+            { ListName.Environments, "5" },
+            { ListName.Lightings, "6" },
+            { ListName.Colors, "7" },
+            { ListName.Moods, "8" },
+            { ListName.Compositions, "9" },
         };
 
         public static List<ListName> coreItems = new List<ListName>()
@@ -398,8 +475,8 @@ namespace ChtGPTHubBuilder
                             list.Description = "A list that contains all art styles pulled from other lists related to specific domains like Painting, Architercture, Graphic Design etc.";
                             break;
                         case ListName.Properties:
-                            list.Title = "Art Properties";
-                            list.Description = "A list that contains artisitc concepts like color, lighting, moods and more that can be used as additional information for a prompt.";
+                            list.Title = "Artistic Elements";
+                            list.Description = "List of all elements and techniques that offer a structured way to analyze an image. It includes items such as medium which identifies the tool canvas or material used, environment indicates the setting, lighting style illuminates the subject, color defines the palette used, mood captures the emotional tone, while composition refers to how the image elements are arranged. Each of these attributes can help to understand and describe an image's unique artistic qualities and the intentions behind it.";
                             break;
                         case ListName.Entities:
                             list.Title = "Art Entities";
@@ -423,27 +500,27 @@ namespace ChtGPTHubBuilder
                     {
                         case ListName.ArtMediums:
                             list.Title = "Art Mediums";
-                            list.Description = "This can range from conventional mediums like oil, acrylic, watercolor, charcoal, to more contemporary ones like digital, mixed media, or installations.";
+                            list.Description = "List of artistic mediums used by creators across the world. It spans traditional classics like oil, acrylic, watercolor, and charcoal, alongside contemporary innovations such as digital art, mixed media, and installations. Embrace the diverse array of mediums employed by artists to express their creativity and vision, representing a rich tapestry of human ingenuity in the world of art.";
                             break;
                         case ListName.Environments:
                             list.Title = "Environments";
-                            list.Description = "AThis is a catalogue of different environmental settings within art. This could include forests, cityscapes, seascapes, deserts, or abstract backgrounds, depicting the context and backdrop of the artwork.";
+                            list.Description = "List of art environments, from urban cityscapes to fantastical realms, post-apocalyptic wastelands to serene nature scenes. Delve into historical eras, futuristic worlds, and underwater wonders, as artists depict captivating backdrops that enrich their artworks with imaginative contexts and emotions. Whether it's the charm of Victorian elegance or the allure of cybernetic futurism, this collection showcases the boundless creativity of human expression through various captivating landscapes.";
                             break;
                         case ListName.Lightings:
                             list.Title = "Lighting Styles";
-                            list.Description = "The lightings list explores different types of illumination used in an artwork. This could be soft morning light, harsh midday light, artificial light, or magical surrealistic light, playing crucial roles in the art's ambiance and focus.";
+                            list.Description = "List of the diverse lighting styles that breathe life into artworks. From soft morning light to dramatic chiaroscuro, each style plays a crucial role in setting the ambiance and focus. Explore the enchanting glow of natural, artificial, and ultraviolet lights, as well as vibrant and high-contrast illuminations. Delight in surrealistic and electro-illuminated effects, as artists masterfully wield lighting to evoke emotions and accentuate their artistic creations.";
                             break;
                         case ListName.Colors:
                             list.Title = "Colors";
-                            list.Description = "This list describes the myriad of colors artists employ in their work. From primary, secondary, and tertiary hues, to monochrome or vibrant palettes, colors breathe life and emotion into the artwork.";
+                            list.Description = "This list is a vibrant preview of the expansive world of color. It offers a glimpse into the variety of color schemes, from bold and high-contrast, to subdued and muted, painting a picture of possibilities. It explores the broad spectrum from monochrome to multi-color, and from vintage to modern palettes. You'll encounter warm, cool, natural, and period-specific tones, setting the stage for a more in-depth exploration.";
                             break;
                         case ListName.Moods:
                             list.Title = "Moods";
-                            list.Description = "The moods list represents the range of emotions or feelings an artwork can evoke, like happiness, sadness, tranquility, mystery, anger or nostalgia. It's about the emotional resonance of an artwork.";
+                            list.Description = "List of the diverse landscape of moods and themes in art. It illustrates a vast range from the playful and whimsical, to the introspective and contemplative, from the joyful and vibrant, to the mysterious and surreal. The list hints at the potential for art to be political, satirical, rebellious, or fantastical, reflecting the complexities of the human experience. Whether you're seeking the calm and tranquil, the edgy and dystopian, or the humorous and quirky, this list provides a glimpse into the powerful moods that art can evoke.";
                             break;
                         case ListName.Compositions:
                             list.Title = "Compositions";
-                            list.Description = "This list details different compositional techniques used in art. These may include rules like the Golden Ratio, Rule of Thirds, Symmetry or Asymmetry, leading lines, or framing, influencing the viewer's focus and the overall balance of the piece.";
+                            list.Description = "List of the diverse tapestry of artistic compositions. From the bold, dynamic and geometric designs to the serene, harmonious and naturalistic forms. It includes abstract and surrealistic patterns, fluid and symmetrical structures, and extends into the detail-oriented world of anatomical, mechanical, and text-based compositions. Discover the artistry in three-dimensional space, layered imagery, or in the simplicity of a monospace canvas. Get specific like an organized grid, the or generic like an expansive landscape.";
                             break;
                     }
 

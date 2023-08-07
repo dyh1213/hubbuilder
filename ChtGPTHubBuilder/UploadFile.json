@@ -1,2 +1,232 @@
 ﻿[
+  {
+    "Concept_Name": "Found Objects",
+    "ArtConcept": {
+      "ArtConcept_Name": "Found Objects medium style",
+      "Art_Styles": [ "Dada", "Surrealism", "Pop Art" ],
+      "Medium": "Sculpture",
+      "relevant_artists": [ "Marcel Duchamp", "Pablo Picasso", "Robert Rauschenberg" ]
+    },
+    "summary": "Found Objects is an artistic style where objects not typically considered art are used in a piece. It's often seen in Dada, Surrealism, and Pop Art. The medium is typically sculpture, with artists like Marcel Duchamp leading the way."
+  },
+  {
+    "Concept_Name": "Painting",
+    "ArtConcept": {
+      "ArtConcept_Name": "Painting medium style",
+      "Art_Styles": [ "Impressionism", "Expressionism", "Cubism", "Abstract", "Realism" ],
+      "Medium": "Paint",
+      "relevant_artists": [ "Vincent Van Gogh", "Pablo Picasso", "Claude Monet" ]
+    },
+    "summary": "Painting is a widely recognized art form, with a variety of styles from Impressionism to Cubism. It uses the medium of paint, and renowned artists include Vincent Van Gogh and Pablo Picasso."
+  },
+  {
+    "Concept_Name": "Illustration",
+    "ArtConcept": {
+      "ArtConcept_Name": "Illustration medium style",
+      "Art_Styles": [ "Cartoon", "Fantasy", "Children's Book", "Graphic Novel" ],
+      "Medium": "Drawing",
+      "relevant_artists": [ "Maurice Sendak", "Quentin Blake", "Beatrix Potter" ]
+    },
+    "summary": "Illustration is a visual interpretation used to convey information or messages. Styles vary from cartoons to fantasy, with the medium often being drawing. Notable illustrators include Maurice Sendak and Quentin Blake."
+  },
+  {
+    "Concept_Name": "Text",
+    "ArtConcept": {
+      "ArtConcept_Name": "Text medium style",
+      "Art_Styles": [ "Conceptual Art", "Typography" ],
+      "Medium": "Various",
+      "relevant_artists": [ "Barbara Kruger", "Jenny Holzer" ]
+    },
+    "summary": "Text in art can be a medium in itself, used in styles like Conceptual Art and Typography. Artists like Barbara Kruger and Jenny Holzer have effectively used text to convey powerful messages."
+  },
+  {
+    "Concept_Name": "Digital",
+    "ArtConcept": {
+      "ArtConcept_Name": "Digital medium style",
+      "Art_Styles": [ "Digital Painting", "Vector Art", "3D Modeling" ],
+      "Medium": "Digital Art",
+      "relevant_artists": [ "David Revoy", "Wei Wei" ]
+    },
+    "summary": "Digital art is a modern medium style encompassing a variety of styles such as Digital Painting, Vector Art, and 3D Modeling. Artists like David Revoy and Wei Wei have pioneered in this field."
+  },
+  {
+    "Concept_Name": "Mixed Media",
+    "ArtConcept": {
+      "ArtConcept_Name": "Mixed Media medium style",
+      "Art_Styles": [ "Collage", "Assemblage" ],
+      "Medium": "Various",
+      "relevant_artists": [ "Robert Rauschenberg", "Joseph Cornell" ]
+    },
+    "summary": "Mixed Media is an art style where artists use more than one medium in a single piece. Styles include Collage and Assemblage, with artists like Robert Rauschenberg and Joseph Cornell known for their work in this style."
+  },
+  {
+    "Concept_Name": "Photography",
+    "ArtConcept": {
+      "ArtConcept_Name": "Photography medium style",
+      "Art_Styles": [ "Photojournalism", "Portrait Photography", "Landscape Photography", "Still Life Photography", "Fashion Photography" ],
+      "Medium": "Photography",
+      "relevant_artists": [ "Ansel Adams", "Richard Avedon", "Dorothea Lange" ]
+    },
+    "summary": "Photography is a diverse medium style capturing a wide range of artistic styles such as Photojournalism and Landscape Photography. Influential photographers include Ansel Adams and Dorothea Lange."
+  },
+  {
+    "Concept_Name": "Ink",
+    "ArtConcept": {
+      "ArtConcept_Name": "Ink medium style",
+      "Art_Styles": [ "Calligraphy", "Sumi-e", "Line Art" ],
+      "Medium": "Drawing",
+      "relevant_artists": [ "Yoko Takenaka", "Aubrey Beardsley" ]
+    },
+    "summary": "Ink is a medium style associated with forms like Calligraphy and Sumi-e, where ink is the primary tool. Notable artists include Yoko Takenaka and Aubrey Beardsley."
+  },
+  {
+    "Concept_Name": "Textile",
+    "ArtConcept": {
+      "ArtConcept_Name": "Textile medium style",
+      "Art_Styles": [ "Weaving", "Embroidery", "Tapestry" ],
+      "Medium": "Textile",
+      "relevant_artists": [ "Faith Ringgold", "Sheila Hicks" ]
+    },
+    "summary": "Textile as an art medium encompasses styles like Weaving and Embroidery. Artists such as Faith Ringgold and Sheila Hicks have significantly contributed to this medium."
+  },
+  {
+    "Concept_Name": "Oil",
+    "ArtConcept": {
+      "ArtConcept_Name": "Oil medium style",
+      "Art_Styles": [ "Baroque", "Impressionism", "Expressionism" ],
+      "Medium": "Painting",
+      "relevant_artists": [ "Rembrandt", "Claude Monet", "Vincent Van Gogh" ]
+    },
+    "summary": "Oil painting is a traditional medium style associated with various art movements like Baroque and Impressionism. Famous oil painters include Rembrandt, Monet, and Van Gogh."
+  },
+  {
+    "Concept_Name": "Sculpture",
+    "ArtConcept": {
+      "ArtConcept_Name": "Sculpture medium style",
+      "Art_Styles": [ "Classical", "Modern", "Abstract", "Kinetic" ],
+      "Medium": "Sculpture",
+      "relevant_artists": [ "Michelangelo", "Auguste Rodin", "Henry Moore" ]
+    },
+    "summary": "Sculpture is a three-dimensional art form. Styles range from Classical to Abstract, with renowned artists such as Michelangelo, Rodin, and Moore."
+  },
+  {
+    "Concept_Name": "Architecture",
+    "ArtConcept": {
+      "ArtConcept_Name": "Architecture medium style",
+      "Art_Styles": [ "Modernist", "Postmodern", "Classical", "Gothic", "Art Deco" ],
+      "Medium": "Architecture",
+      "relevant_artists": [ "Frank Lloyd Wright", "Zaha Hadid", "Le Corbusier" ]
+    },
+    "summary": "Architecture is an artistic and technical discipline, with styles from Modernist to Art Deco. Prominent architects include Frank Lloyd Wright, Zaha Hadid, and Le Corbusier."
+  },
+  {
+    "Concept_Name": "Animation",
+    "ArtConcept": {
+      "ArtConcept_Name": "Animation medium style",
+      "Art_Styles": [ "2D Animation", "3D Animation", "Stop Motion", "Anime" ],
+      "Medium": "Digital",
+      "relevant_artists": [ "Hayao Miyazaki", "Walt Disney", "Nick Park" ]
+    },
+    "summary": "Animation is a dynamic medium style that brings art to life. Styles range from 2D Animation to Stop Motion, with pioneers like Hayao Miyazaki and Walt Disney."
+  },
+  {
+    "Concept_Name": "Chalk",
+    "ArtConcept": {
+      "ArtConcept_Name": "Chalk medium style",
+      "Art_Styles": [ "Street Art", "Chalk Pastel" ],
+      "Medium": "Drawing",
+      "relevant_artists": [ "Julian Beever", "Edgar Degas" ]
+    },
+    "summary": "Chalk is a versatile medium style utilized in various formats from Street Art to Chalk Pastel. Artists such as Julian Beever and Edgar Degas have produced notable work in this medium."
+  },
+  {
+    "Concept_Name": "Drawing",
+    "ArtConcept": {
+      "ArtConcept_Name": "Drawing medium style",
+      "Art_Styles": [ "Realism", "Abstract", "Technical Drawing" ],
+      "Medium": "Drawing",
+      "relevant_artists": [ "Albrecht Dürer", "Leonardo da Vinci", "Katsushika Hokusai" ]
+    },
+    "summary": "Drawing is a fundamental medium style with diverse styles from Realism to Abstract. Artists like Albrecht Dürer and Leonardo da Vinci have mastered this art form."
+  },
+  {
+    "Concept_Name": "Video",
+    "ArtConcept": {
+      "ArtConcept_Name": "Video medium style",
+      "Art_Styles": [ "Video Art", "Installation Art", "Experimental Film" ],
+      "Medium": "Digital",
+      "relevant_artists": [ "Nam June Paik", "Bill Viola", "Marina Abramovic" ]
+    },
+    "summary": "Video is a modern medium style encompassing styles such as Video Art and Experimental Film. Artists like Nam June Paik and Marina Abramovic have contributed significantly to this medium."
+  },
+  {
+    "Concept_Name": "Digital Painting",
+    "ArtConcept": {
+      "ArtConcept_Name": "Digital Painting medium style",
+      "Art_Styles": [ "Concept Art", "Pixel Art", "Digital Realism" ],
+      "Medium": "Digital Art",
+      "relevant_artists": [ "Craig Mullins", "Aaron Blaise" ]
+    },
+    "summary": "Digital Painting is a style that replicates traditional painting techniques in a digital format. Styles range from Concept Art to Digital Realism, with artists such as Craig Mullins and Aaron Blaise making significant contributions."
+  },
+  {
+    "Concept_Name": "Stone Lithography",
+    "ArtConcept": {
+      "ArtConcept_Name": "Stone Lithography medium style",
+      "Art_Styles": [ "Printmaking" ],
+      "Medium": "Print",
+      "relevant_artists": [ "Honoré Daumier", "Francisco Goya" ]
+    },
+    "summary": "Stone Lithography is a printmaking medium style that involves etching on a smooth stone. It's been used by artists like Honoré Daumier and Francisco Goya."
+  },
+  {
+    "Concept_Name": "Ceramics",
+    "ArtConcept": {
+      "ArtConcept_Name": "Ceramics medium style",
+      "Art_Styles": [ "Pottery", "Sculpture" ],
+      "Medium": "Ceramics",
+      "relevant_artists": [ "Peter Voulkos", "Lucie Rie" ]
+    },
+    "summary": "Ceramics is a medium style, often associated with pottery and sculpture. Artists such as Peter Voulkos and Lucie Rie have significantly contributed to ceramic art."
+  },
+  {
+    "Concept_Name": "Watercolor",
+    "ArtConcept": {
+      "ArtConcept_Name": "Watercolor medium style",
+      "Art_Styles": [ "Landscape", "Portrait", "Abstract" ],
+      "Medium": "Painting",
+      "relevant_artists": [ "J.M.W. Turner", "Winslow Homer", "Georgia O’Keeffe" ]
+    },
+    "summary": "Watercolor is a medium style, known for its light and fluid aesthetic. Styles range from Landscape to Abstract, with artists such as J.M.W. Turner and Winslow Homer using it extensively."
+  },
+  {
+    "Concept_Name": "Clothing",
+    "ArtConcept": {
+      "ArtConcept_Name": "Clothing medium style",
+      "Art_Styles": [ "Fashion Design", "Costume Design" ],
+      "Medium": "Textile",
+      "relevant_artists": [ "Coco Chanel", "Alexander McQueen" ]
+    },
+    "summary": "Clothing as an art form explores styles such as Fashion Design and Costume Design. Notable designers in this medium include Coco Chanel and Alexander McQueen."
+  },
+  {
+    "Concept_Name": "Encaustic Paint",
+    "ArtConcept": {
+      "ArtConcept_Name": "Encaustic Paint medium style",
+      "Art_Styles": [ "Abstract Expressionism" ],
+      "Medium": "Painting",
+      "relevant_artists": [ "Jasper Johns", "Diego Rivera" ]
+    },
+    "summary": "Encaustic Paint involves using heated beeswax and has been used in styles such as Abstract Expressionism. Artists like Jasper Johns and Diego Rivera have experimented with this medium."
+  },
+  {
+    "Concept_Name": "Print",
+    "ArtConcept": {
+      "ArtConcept_Name": "Print medium style",
+      "Art_Styles": [ "Silkscreen", "Etching", "Lithography" ],
+      "Medium": "Print",
+      "relevant_artists": [ "Albrecht Dürer", "Katsushika Hokusai", "Andy Warhol" ]
+    },
+    "summary": "Print is a medium style involving the transfer of images from one surface to another. Styles include Silkscreen, Etching, and Lithography, with artists like Dürer, Hokusai, and Warhol contributing significantly."
+  }
 ]
