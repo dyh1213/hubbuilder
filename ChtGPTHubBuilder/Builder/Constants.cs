@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using GraphHub.Shared;
+using Octokit;
+using static System.Net.WebRequestMethods;
 
 namespace ChtGPTHubBuilder.Builder
 {
@@ -8,13 +11,27 @@ namespace ChtGPTHubBuilder.Builder
         public const string HubConceptId = "10000000-024a-44e5-8844-998342022971";
         public const string TbdParentId = "10000000-0000-0000-0000-000000000000";
 
-        private const string ArtStylesId = "1";
-        private const string ArtPropertiesId = "2";
-        private const string ArtEntitiesId = "3";
-
         private const string knollingConcept = "185";
         private const string steampunkConcept = "271";
         private const string banksyConcept = "272";
+
+        public static string UsageTitle(string title) => $"{title} - Usages";
+        public static string PromptsTitle(string title) => $"{title} - Prompts";
+        public static string StylesTitle(string title) => $"{title} - Styles";
+
+        public const string ArtStylesName = "Style";
+        public const string ArtEntitiesName = "Entitie";
+        public const string ArtMediumsName = "Element";
+        public const string ArtStylesListName = "Styles";
+        public const string ArtEntitiesListName = "Entities";
+        public const string ArtMediumsListName = "Elements";
+
+        public const string ArtPropertyName_Medium = "Medium";
+        public const string ArtPropertyName_Environment = "Environment";
+        public const string ArtPropertyName_Lighting = "Lighting";
+        public const string ArtPropertyName_Color = "Color";
+        public const string ArtPropertyName_Mood = "Mood";
+        public const string ArtPropertyName_Composition = "Composition";
 
         public enum ListName
         {
@@ -29,24 +46,6 @@ namespace ChtGPTHubBuilder.Builder
             UnmappedEntities,
             Properties
         }
-        public static Dictionary<ListName, string> ListIds = new Dictionary<ListName, string>()
-        {
-            //Major Items
-            { ListName.ArtStyles, ArtStylesId },
-            { ListName.Properties, ArtPropertiesId },
-            { ListName.Entities, ArtEntitiesId },
-
-            //Part of entities
-            { ListName.UnmappedEntities, "999" },
-
-            //Properties
-            { ListName.ArtMediums, "4" },
-            { ListName.Environments, "5" },
-            { ListName.Lightings, "6" },
-            { ListName.Colors, "7" },
-            { ListName.Moods, "8" },
-            { ListName.Compositions, "9" },
-        };
 
         public static List<ListName> coreItems = new List<ListName>()
         {
@@ -75,157 +74,127 @@ namespace ChtGPTHubBuilder.Builder
                 ConceptMarkdown = new List<ConceptMarkdown>(),
             };
 
-            graphData.Concepts.Add(new ConceptData()
+            foreach (var item in properties)
             {
-                Id = HubConceptId,
-                Title = "Art Styles Knowledge Graph",
-                Description = "This is a large community built graph of all different types of art styles. This map helps you get better at using AI image generators like Midjourney, Doll-E, Stable Diffusion, and more. It also shows you famous artists and characters, and the special art styles they're known for"
-            });
+                var concept = new ConceptData(){};
 
-            graphData.Concepts.Add(new ConceptData()
+                graphData.Concepts.Add(concept);
+
+                switch (item)
+                {
+                    case ListName.ArtMediums:
+                        concept.Id = $"{ArtPropertyName_Medium}";
+                        concept.Title = ArtPropertyName_Medium;
+                        concept.Description = "List of artistic mediums used by creators across the world. It spans traditional classics like oil, acrylic, watercolor, and charcoal, alongside contemporary innovations such as digital art, mixed media, and installations. Embrace the diverse array of mediums employed by artists to express their creativity and vision, representing a rich tapestry of human ingenuity in the world of art.";
+                        break;
+                    case ListName.Environments:
+                        concept.Id = $"{ArtPropertyName_Environment}";
+                        concept.Title = ArtPropertyName_Environment;
+                        concept.Description = "List of art environments, from urban cityscapes to fantastical realms, post-apocalyptic wastelands to serene nature scenes. Delve into historical eras, futuristic worlds, and underwater wonders, as artists depict captivating backdrops that enrich their artworks with imaginative contexts and emotions. Whether it's the charm of Victorian elegance or the allure of cybernetic futurism, this collection showcases the boundless creativity of human expression through various captivating landscapes.";
+                        break;
+                    case ListName.Lightings:
+                        concept.Id = $"{ArtPropertyName_Lighting}";
+                        concept.Title = ArtPropertyName_Lighting;
+                        concept.Description = "List of the diverse lighting styles that breathe life into artworks. From soft morning light to dramatic chiaroscuro, each style plays a crucial role in setting the ambiance and focus. Explore the enchanting glow of natural, artificial, and ultraviolet lights, as well as vibrant and high-contrast illuminations. Delight in surrealistic and electro-illuminated effects, as artists masterfully wield lighting to evoke emotions and accentuate their artistic creations.";
+                        break;
+                    case ListName.Colors:
+                        concept.Id = $"{ArtPropertyName_Color}";
+                        concept.Title = ArtPropertyName_Color;
+                        concept.Description = "This list is a vibrant preview of the expansive world of color. It offers a glimpse into the variety of color schemes, from bold and high-contrast, to subdued and muted, painting a picture of possibilities. It explores the broad spectrum from monochrome to multi-color, and from vintage to modern palettes. You'll encounter warm, cool, natural, and period-specific tones, setting the stage for a more in-depth exploration.";
+                        break;
+                    case ListName.Moods:
+                        concept.Id = $"{ArtPropertyName_Mood}";
+                        concept.Title = ArtPropertyName_Mood;
+                        concept.Description = "List of the diverse landscape of moods and themes in art. It illustrates a vast range from the playful and whimsical, to the introspective and contemplative, from the joyful and vibrant, to the mysterious and surreal. The list hints at the potential for art to be political, satirical, rebellious, or fantastical, reflecting the complexities of the human experience. Whether you're seeking the calm and tranquil, the edgy and dystopian, or the humorous and quirky, this list provides a glimpse into the powerful moods that art can evoke.";
+                        break;
+                    case ListName.Compositions:
+                        concept.Id = $"{ArtPropertyName_Composition}";
+                        concept.Title = ArtPropertyName_Composition;
+                        concept.Description = "List of the diverse tapestry of artistic compositions. From the bold, dynamic and geometric designs to the serene, harmonious and naturalistic forms. It includes abstract and surrealistic patterns, fluid and symmetrical structures, and extends into the detail-oriented world of anatomical, mechanical, and text-based compositions. Discover the artistry in three-dimensional space, layered imagery, or in the simplicity of a monospace canvas. Get specific like an organized grid, the or generic like an expansive landscape.";
+                        break;
+                }
+            }
+
+            foreach (var item in coreItems)
             {
-                Id = TbdParentId,
-                Title = "TBD",
-            });
-
-            foreach (var item in ListIds)
-            {
-                var list = new ConceptListData()
-                {
-                    Id = item.Value,
-                    Title = item.Key.ToString(),
-                    PullFromListsIds = new List<string>()
-                };
-
-                if (coreItems.Contains(item.Key))
-                {
-                    list.ParentConceptId = HubConceptId;
-                    switch (item.Key)
-                    {
-                        case ListName.ArtStyles:
-                            list.Title = "Art Styles";
-                            list.Description = "A list that contains all art styles pulled from other lists related to specific domains like Painting, Architercture, Graphic Design etc.";
-                            break;
-                        case ListName.Properties:
-                            list.Title = "Artistic Elements";
-                            list.Description = "List of all elements and techniques that offer a structured way to analyze an image. It includes items such as medium which identifies the tool canvas or material used, environment indicates the setting, lighting style illuminates the subject, color defines the palette used, mood captures the emotional tone, while composition refers to how the image elements are arranged. Each of these attributes can help to understand and describe an image's unique artistic qualities and the intentions behind it.";
-                            break;
-                        case ListName.Entities:
-                            list.Title = "Art Entities";
-                            list.Description = "A collection of entities that have a definitive art style, this could be artists from a spefici field or other entities like tv-shows, games, studios etc.";
-                            break;
-                    }
-                }
-                else if (properties.Contains(item.Key))
-                {
-                    /*
-                    var parentConcept = new ConceptData()
-                    {
-                        Id = GenerateGuid(true),
-                        Title = item.Key.ToString().Remove(item.Key.ToString().Length - 1, 1),
-                    };
-
-                    graphData.Concepts.Add(parentConcept);
-                    */
-
-                    switch (item.Key)
-                    {
-                        case ListName.ArtMediums:
-                            list.Title = "Art Mediums";
-                            list.Description = "List of artistic mediums used by creators across the world. It spans traditional classics like oil, acrylic, watercolor, and charcoal, alongside contemporary innovations such as digital art, mixed media, and installations. Embrace the diverse array of mediums employed by artists to express their creativity and vision, representing a rich tapestry of human ingenuity in the world of art.";
-                            break;
-                        case ListName.Environments:
-                            list.Title = "Environments";
-                            list.Description = "List of art environments, from urban cityscapes to fantastical realms, post-apocalyptic wastelands to serene nature scenes. Delve into historical eras, futuristic worlds, and underwater wonders, as artists depict captivating backdrops that enrich their artworks with imaginative contexts and emotions. Whether it's the charm of Victorian elegance or the allure of cybernetic futurism, this collection showcases the boundless creativity of human expression through various captivating landscapes.";
-                            break;
-                        case ListName.Lightings:
-                            list.Title = "Lighting Styles";
-                            list.Description = "List of the diverse lighting styles that breathe life into artworks. From soft morning light to dramatic chiaroscuro, each style plays a crucial role in setting the ambiance and focus. Explore the enchanting glow of natural, artificial, and ultraviolet lights, as well as vibrant and high-contrast illuminations. Delight in surrealistic and electro-illuminated effects, as artists masterfully wield lighting to evoke emotions and accentuate their artistic creations.";
-                            break;
-                        case ListName.Colors:
-                            list.Title = "Colors";
-                            list.Description = "This list is a vibrant preview of the expansive world of color. It offers a glimpse into the variety of color schemes, from bold and high-contrast, to subdued and muted, painting a picture of possibilities. It explores the broad spectrum from monochrome to multi-color, and from vintage to modern palettes. You'll encounter warm, cool, natural, and period-specific tones, setting the stage for a more in-depth exploration.";
-                            break;
-                        case ListName.Moods:
-                            list.Title = "Moods";
-                            list.Description = "List of the diverse landscape of moods and themes in art. It illustrates a vast range from the playful and whimsical, to the introspective and contemplative, from the joyful and vibrant, to the mysterious and surreal. The list hints at the potential for art to be political, satirical, rebellious, or fantastical, reflecting the complexities of the human experience. Whether you're seeking the calm and tranquil, the edgy and dystopian, or the humorous and quirky, this list provides a glimpse into the powerful moods that art can evoke.";
-                            break;
-                        case ListName.Compositions:
-                            list.Title = "Compositions";
-                            list.Description = "List of the diverse tapestry of artistic compositions. From the bold, dynamic and geometric designs to the serene, harmonious and naturalistic forms. It includes abstract and surrealistic patterns, fluid and symmetrical structures, and extends into the detail-oriented world of anatomical, mechanical, and text-based compositions. Discover the artistry in three-dimensional space, layered imagery, or in the simplicity of a monospace canvas. Get specific like an organized grid, the or generic like an expansive landscape.";
-                            break;
-                    }
-
-                    //list.ParentConceptId = parentConcept.Id;
-                }
-                else
-                {
-                    list.ParentConceptId = TbdParentId;
-                }
-
+                var concept = new ConceptData() { };
+                graphData.Concepts.Add(concept);
+                var list = new ConceptListData() { };
                 graphData.Lists.Add(list);
 
-                var metadata = new GraphHub.Database.Dto.GraphInfo()
+                switch (item)
                 {
-                    GraphId = "100",
-                    GraphDisplayName = "Text To Image",
-                    GraphUrlName = "text-to-image",
-                    GraphGitHubDatabaseUrl = "https://github.com/dyh1213/graphhub.data/tree/main/graphs_current/text-to-image",
-                    RootConcept = "10000000-024a-44e5-8844-998342022971",
-                    Description = "The 'text-to-image' graph is a the definitive guide for users of tools such as Midjourney, DALLE-2, Stable Diffusion, or similar AIs. This chart presents a mapping of art styles, lighting, colors, moods, and renowned entities, assisting in crafting prompts that yield predictable and consistent results.",
-                    TopFeaturedLists = new List<GraphHub.Database.Dto.FeaturedItemImage>() {
+                    case ListName.ArtStyles:
+                        concept.Id = ArtStylesName;
+                        concept.Description = "An art style";
+                        concept.Title = ArtStylesName;
+                        list.Id = "All_" + ArtStylesListName;
+                        list.ParentConceptId = concept.Id;
+                        list.Title = ArtStylesListName;
+                        list.Description = "List of all art styles pulled from other lists related to specific domains like Painting, Architercture, Graphic Design etc.";
+                        break;
+                    case ListName.Properties:
+                        concept.Id = ArtMediumsName;
+                        concept.Description = "An art medium";
+                        concept.Title = ArtMediumsName;
+                        concept.Image = new ConceptImage()
+                        {
+                            imagePrviewUrl = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_element_Element_20230807192425_preview.jpeg",
+                            imageURL = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_element_Element_20230807192425.jpeg"
+                        };
+                        list.Id = "All_" + ArtMediumsListName;
+                        list.ParentConceptId = concept.Id;
+                        list.ImageConceptId = concept.Id;
+                        list.Title = ArtMediumsListName;
+                        list.Description = "List of all elements and techniques that offer a structured way to analyze an image. It includes items such as medium which identifies the tool canvas or material used, environment indicates the setting, lighting style illuminates the subject, color defines the palette used, mood captures the emotional tone, while composition refers to how the image elements are arranged. Each of these attributes can help to understand and describe an image's unique artistic qualities and the intentions behind it.";
+                        break;
+                    case ListName.Entities:
+                        concept.Id = ArtEntitiesName;
+                        concept.Description = "An art entity";
+                        concept.Title = ArtEntitiesName;
+                        list.Id = "All_" + ArtEntitiesListName;
+                        list.ParentConceptId = concept.Id;
+                        list.Title = ArtEntitiesListName;
+                        list.Description = "List of entities entities that have a definitive art style, this could be artists from a spefici field or other entities like tv-shows, games, studios etc.";
+                        break;
+                }
+
+
+            }
+
+            var metadata = new GraphHub.Database.Dto.GraphInfo()
+            {
+                GraphId = "100",
+                GraphDisplayName = "Text To Image",
+                GraphUrlName = "text-to-image",
+                GraphGitHubDatabaseUrl = "https://github.com/dyh1213/graphhub.data/tree/main/graphs_current/text-to-image",
+                RootConcept = "10000000-024a-44e5-8844-998342022971",
+                Description = "The 'text-to-image' graph is a the definitive guide for users of tools such as Midjourney, DALLE-2, Stable Diffusion, or similar AIs. This chart presents a mapping of art styles, lighting, colors, moods, and renowned entities, assisting in crafting prompts that yield predictable and consistent results.",
+                TopFeaturedLists = new List<GraphHub.Database.Dto.FeaturedItemImage>() {
                         new GraphHub.Database.Dto.FeaturedItemImage() {
-                            Id = ArtStylesId,
-                            Base64Image = "text-to-image-artstyles.png"
+                            Id = "All_" + ArtStylesListName,
                         },
                         new GraphHub.Database.Dto.FeaturedItemImage() {
-                            Id = ArtPropertiesId,
-                            Base64Image = "text-to-image-colors.png"
+                            Id = "All_" + ArtMediumsListName,
                         },
                         new GraphHub.Database.Dto.FeaturedItemImage() {
-                            Id = ArtEntitiesId,
-                            Base64Image = "frida-kahlo-portrait.png"
+                            Id = "All_" + ArtEntitiesListName,
                         },
                     },
-                    FeaturedLists = ListIds.Where(x => properties.Contains(x.Key)).Select(x => x.Value).ToList(),
-                    TopFeaturedConcepts = new List<GraphHub.Database.Dto.FeaturedItemImage>() {
+                TopFeaturedConcepts = new List<GraphHub.Database.Dto.FeaturedItemImage>() {
                         new GraphHub.Database.Dto.FeaturedItemImage() {
                             Id = knollingConcept,
-                            Base64Image = "knolling-art-style.png"
                         },
                         new GraphHub.Database.Dto.FeaturedItemImage() {
                             Id = steampunkConcept,
-                            Base64Image = "steampunk-art-style.png"
                         },
                         new GraphHub.Database.Dto.FeaturedItemImage() {
                             Id = banksyConcept,
-                            Base64Image = "banksy-art-style.png"
                         }
                     },
-                };
+            };
 
-                graphData.GraphInfo = metadata;
-            }
-
-            var propertyList = graphData.Lists.First(x => x.Id.Equals(ListIds[ListName.Properties]));
-            foreach (var item in properties)
-            {
-                var itemAddedToProperties = ListIds[item];
-                propertyList.PullFromListsIds.Add(itemAddedToProperties);
-                Console.WriteLine($"Added property {item}({itemAddedToProperties}) to {propertyList.Id}");
-                /*
-                var propertyConcept = graphData.Lists.First(x => x.Id.Equals(ListIds[item]));
-                graphData.Memberships.Add(new MembershipData()
-                {
-                    ConceptId = propertyConcept.ParentConceptId,
-                    ListId = propertyList.Id
-                });
-                */
-            }
-
-            var entitiesList = graphData.Lists.First(x => x.Id.Equals(ListIds[ListName.Entities]));
-
-            entitiesList.PullFromListsIds.Add(ListIds[ListName.UnmappedEntities]);
+            graphData.GraphInfo = metadata;
 
             graphData.ConceptMarkdown.Add(new ConceptMarkdown()
             {

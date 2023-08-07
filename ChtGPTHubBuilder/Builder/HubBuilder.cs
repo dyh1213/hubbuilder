@@ -1,7 +1,9 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Text.Json;
 using ChtGPTHubBuilder.Objects;
 using GraphHub.Shared;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using static ChtGPTHubBuilder.Builder.Constants;
 
 namespace ChtGPTHubBuilder
@@ -33,6 +35,12 @@ namespace ChtGPTHubBuilder
             else
             {
                 graphData = ChtGPTHubBuilder.Builder.Constants.Intitilize();
+
+                //Create the appropriate lists for properties styles and add them under the relevant list.
+                foreach(var concept in graphData.Concepts)
+                {
+                    var conceptProcessed = CreateOrUpdateConcept(concept.Title, null, false, ArtMediumsListName);
+                }
             }
 
             var isValidInit = ChtGPTHubBuilder.Builder.DataValidation.ValidateGraphData(graphData);
@@ -48,26 +56,48 @@ namespace ChtGPTHubBuilder
             
             var totalCount = Files.Count();
             var currentCount = 1;
-            foreach (FileInfo file in Files.OrderBy(x=>x.CreationTime))
+
+            //LOAD AND CLEAN UP DATA
+            var fileData = new List<ArtisticConceptResponse>();
+
+            foreach (FileInfo file in Files.OrderBy(x => x.CreationTime))
             {
-                string artConceptJson = File.ReadAllText(file.FullName);
-                ArtisticConceptResponse conceptResponse = JsonSerializer.Deserialize<ArtisticConceptResponse>(artConceptJson);
+                var text = File.ReadAllText(file.FullName);
+                var data = JsonSerializer.Deserialize<ArtisticConceptResponse>(text);
 
-                Console.WriteLine($"Processing item {currentCount}/{totalCount}");
-                Console.WriteLine($"Item Name {conceptResponse.Concept_Name}");
-                Console.WriteLine($"Item ID {conceptResponse.Id}");
-
-                ChtGPTHubBuilder.Builder.DataCleaning.ProcessTitleCase(file, conceptResponse);
-
-                if (conceptResponse.Id == null)
+                if (data.Id == null)
                 {
-                    conceptResponse.Id = currentCount.ToString();
-                    string updatedJson = JsonSerializer.Serialize(conceptResponse, new JsonSerializerOptions() { WriteIndented = true });
+                    data.Id = Guid.NewGuid().ToString();
+                    string updatedJson = JsonSerializer.Serialize(data, new JsonSerializerOptions() { WriteIndented = true });
                     File.WriteAllText(file.FullName, updatedJson);
                 }
 
+                data = Builder.DataCleaning.ProcessTitleCase(file, data);
+
+                fileData.Add(data);
+            }
+
+            var initialConcepts = fileData.Select(x => new ConceptData()
+            {
+                Id = x.Id,
+                Title = x.Concept_Name
+            }).ToList();
+
+            graphData.Concepts.AddRange(initialConcepts);
+
+            foreach (var artisticConcpt in fileData)
+            {
+                Console.WriteLine($"Processing item {currentCount}/{totalCount}");
+                Console.WriteLine($"Item Name {artisticConcpt.Concept_Name}");
+                Console.WriteLine($"Item ID {artisticConcpt.Id}");
+
+                if (artisticConcpt.Id.Equals("1491"))
+                {
+                    var i = 5; ;
+                }
+
                 // Process each ArtisticConceptResponse
-                HandleEntityConcept(conceptResponse);
+                HandleEntityConcept(artisticConcpt);
 
                 var isValid = ChtGPTHubBuilder.Builder.DataValidation.ValidateGraphData(graphData);
                 if (!isValid)
@@ -96,153 +126,160 @@ namespace ChtGPTHubBuilder
                 Console.WriteLine("Processing as Entity");
                 string entityClass = conceptResponse.Entity.Entity_Class;
                 string entityCategory = conceptResponse.Entity.Entity_Category;
-                ConceptListData entityClassList = FindOrCreateList(entityClass, null, ListIds[ListName.Entities]);
-                ConceptListData entityCategoryList = FindOrCreateList(entityCategory, null, entityClassList.Id);
-                ConceptData concept = FindOrCreateConcept(conceptName, conceptResponse.summary, entityCategoryList.Id, "MAIN_ENTITY",conceptResponse.Id);
-                //Check if it was previously created as a stub and remove that stub
-                resultingID = concept.Id;
+                var entityClassConcept = CreateOrUpdateConcept(entityClass, null, false, ArtEntitiesListName);
+                var entityCategoryConcept = CreateOrUpdateConcept(entityCategory, null, false, StylesTitle(entityClassConcept.Title));
+                var concept = CreateOrUpdateConcept(conceptName, conceptResponse.summary, true, memberOfList: StylesTitle(entityCategoryConcept.Title));
             }
             else
             {
-                Console.WriteLine("Processing as Art Concept");
-                ConceptData concept = FindOrCreateConcept(conceptName, conceptResponse.summary, ChtGPTHubBuilder.Builder.Constants.ListIds[ListName.ArtStyles], "MAIN_ARTSTYLE", conceptResponse.Id);
-                //ConceptListData list = FindOrCreateList(conceptName + " Styles", conceptResponse.summary, ListIds[ListName.ArtStyles], concept.Id);
-                resultingID = concept.Id;
+                var concept = CreateOrUpdateConcept(conceptName, conceptResponse.summary, false, ArtStylesListName);
+
                 if (artConcept.relevant_artists != null)
                 {
                     foreach (var artist in artConcept.relevant_artists)
                     {
-                        ConceptData artistConcept = FindOrCreateConcept(artist, null, ListIds[ListName.UnmappedEntities], "ARTIST");
+                        var artistConcept = CreateOrUpdateConcept(artist, null, isEntity: true, memberOfList: UsageTitle(concept.Title));
                     }
                 }
             }
 
             foreach (var style in artConcept.Art_Styles)
             {
-                ConceptData concept = FindOrCreateConcept(style, null, ListIds[ListName.ArtStyles], "STYLE");
-                //ConceptListData list = FindOrCreateList(style + " Styles", null, ListIds[ListName.ArtStyles], concept.Id);
+                var concept = CreateOrUpdateConcept(style, null, false, ArtStylesListName);
             }
 
-            ProcessAttribiteField(isEntity, resultingID, artConcept.Medium, ListName.ArtMediums);
-            ProcessAttribiteField(isEntity, resultingID, artConcept.Environment, ListName.Environments);
-            ProcessAttribiteField(isEntity, resultingID, artConcept.Lighting, ListName.Lightings);
-            ProcessAttribiteField(isEntity, resultingID, artConcept.Color, ListName.Colors);
-            ProcessAttribiteField(isEntity, resultingID, artConcept.Mood, ListName.Moods);
-            ProcessAttribiteField(isEntity, resultingID, artConcept.Composition, ListName.Compositions);
+            var ArtMediums = CreateOrUpdateConcept(artConcept.Medium, null, true, memberOfList: StylesTitle(ArtPropertyName_Medium));
+            var Environments = CreateOrUpdateConcept(artConcept.Environment, null, true, memberOfList: StylesTitle(ArtPropertyName_Environment));
+            var Lightings = CreateOrUpdateConcept(artConcept.Lighting, null, true, memberOfList: StylesTitle(ArtPropertyName_Lighting));
+            var Colors = CreateOrUpdateConcept(artConcept.Color, null, true, memberOfList: StylesTitle(ArtPropertyName_Color));
+            var Moods = CreateOrUpdateConcept(artConcept.Mood, null, true, memberOfList: StylesTitle(ArtPropertyName_Mood));
+            var Compositions = CreateOrUpdateConcept(artConcept.Composition, null, true, memberOfList: StylesTitle(ArtPropertyName_Composition));
         }
 
-        private void ProcessAttribiteField(bool isEntity, string? resultingID, string attributeFieldValue, ListName attributeField)
+        private ConceptData? CreateOrUpdateConcept(string? title, string? summary, bool isEntity, string? stylesParentName = null, string? memberOfList = null)
         {
-            if (attributeFieldValue != null)
+            if (string.IsNullOrEmpty(title))
             {
-                ConceptData concept = FindOrCreateConcept(attributeFieldValue, null, ListIds[attributeField], attributeField.ToString());
-                //ConceptListData list = FindOrCreateList(attributeFieldValue + "Styles", null, ListIds[attributeField], concept.Id);
-
-                if (isEntity)
-                {
-                    //graphData.Memberships.Add(new MembershipData { ConceptId = resultingID, ListId = list.Id });
-                }
-                else
-                {
-                    //if (!list.PullFromListsIds.Contains(resultingID))
-                    //{
-                    //    list.PullFromListsIds.Add(resultingID);
-                    //}
-                }
+                return null;
             }
+
+            ConceptData concept = CreateOrUpdateConceptInternal(title, summary, memberOfListName: memberOfList);
+
+            var propts = CreateOrUpdateListInternal(concept.Id, PromptsTitle(title), $"List of prompts using the concept '{title}'. {concept.Description}", overrideID: concept.Id+"-P");
+
+            if (!isEntity)
+            {
+                var usage = CreateOrUpdateListInternal(concept.Id, UsageTitle(title), $"List of artists or entities related to the concept '{title}'. {concept.Description}", overrideID: concept.Id + "-U");
+                var styles = CreateOrUpdateListInternal(concept.Id, StylesTitle(title), $"List of '{title}' art styles. {concept.Description}", stylesParentName, overrideID: concept.Id + "-S");
+            }
+
+            return concept;
         }
 
-        private ConceptListData FindOrCreateList(string title, string? summary, string parentListId, string parentConceptId = TbdParentId)
+        private ConceptListData CreateOrUpdateListInternal(string conceptId, string listTitle, string? Description, string? parentListId = null, string? ownerListId = null, string? overrideID = null)
         {
-            ConceptListData list = graphData.Lists.FirstOrDefault(l => l.Title == title);
+            ConceptListData list = graphData.Lists.FirstOrDefault(c => c.Title == listTitle);
+            bool newList = list == null;
 
-            if (list == null)
+            //Update any field on concept that is null
+            var newlist = new ConceptListData
             {
-                list = new ConceptListData
-                {
-                    Id = GenerateGuid(false),
-                    Title = title,
-                    Description = summary,
-                    PullFromListsIds = new List<string>(),
-                    ParentConceptId = TbdParentId
-                };
+                Id = list?.Id ?? overrideID ?? GenerateGuid(true),
+                Title = list?.Title ?? listTitle,
+                Description = (list?.Description == null || list.Description.Length < (Description ?? "").Length) ? Description : list?.Description,
+                ParentConceptId = conceptId
+            };
+            list = newlist;
 
-                var parentListDataa = graphData.Lists.Find(l => l.Id == parentListId);
-                parentListDataa.PullFromListsIds.Add(list.Id);
-
+            //Add the concept
+            if (newList)
+            {
                 graphData.Lists.Add(list);
-                Console.WriteLine($"Created a new list {list.Title} ({list.Id}): Added it as a pull to {parentListDataa.Title} ({parentListDataa.Id})");
-            }
-            else
-            {
-                if (summary != null)
-                {
-                    list.Description = summary;
-                }
-                Console.WriteLine($"UPDATED LIST SUMMARY");
+                Console.WriteLine($"Create a new list: {list.Title}({list.Id})");
             }
 
-            ConceptListData parentListData = graphData.Lists.Find(l => l.Id == parentListId);
-            if (!parentListData.PullFromListsIds.Contains(list.Id))
+            list.ParentConceptId = conceptId;
+
+            //Add to the parent list if its not already there as a pull list
+            if (parentListId != null)
             {
-                parentListData.PullFromListsIds.Add(list.Id);
-                Console.WriteLine($"CREATED A NEW PULL FROM LIST");
+                CreateOrUpdateListInListMembership(parentListId, list.Id);
             }
 
             return list;
         }
 
-        private ConceptData FindOrCreateConcept(string title, string? summary, string listId, string type, string conceptId = null)
+        private void CreateOrUpdateListInListMembership(string? addToParentListId, string listId)
         {
-            ConceptData concept = graphData.Concepts.FirstOrDefault(c => c.Title == title);
+            ConceptListData parentList = graphData.Lists.FirstOrDefault(c => c.Title == addToParentListId);
 
-            if (concept == null)
+            if (parentList != null)
             {
-                concept = new ConceptData
+                var membership = parentList.PullFromListsIds?.Contains(listId) ?? false;
+
+                if (!membership)
                 {
-                    Id = conceptId == null ? GenerateGuid(true) : conceptId,
-                    Title = title,
-                    Description = summary
-                };
+                    if (parentList.PullFromListsIds == null)
+                    {
+                        parentList.PullFromListsIds = new List<string>();
+                    }
 
-                graphData.Concepts.Add(concept);
-
-                Console.WriteLine($"Create a new {type} concept: {concept.Title}({concept.Id})");
-
-                graphData.Memberships.Add(new MembershipData { ConceptId = concept.Id, ListId = listId });
-
-                Console.WriteLine($"Created new membership {type}: concept={concept.Id}, list={listId}");
+                    parentList.PullFromListsIds.Add(listId);
+                }
             }
             else
             {
-                Console.WriteLine($"Found existing {type} concept: {concept.Title}({concept.Id})");
-                //Remove Stubs
-                var checkIsStubExists = graphData.Memberships.FirstOrDefault(m => m.ConceptId == concept.Id && m.ListId == ListIds[ListName.UnmappedEntities]);
-                if (checkIsStubExists != null)
+                throw new ArgumentException($"Tried to add list {listId} to a list that does not exist! {addToParentListId}");
+            }
+        }
+
+        private ConceptData CreateOrUpdateConceptInternal(string title, string? summary, string? memberOfListName = null)
+        {
+            if (title == "Bold")
+            {
+                var i = 5;
+            }
+
+            //Try and find the concept
+            ConceptData concept = graphData.Concepts.FirstOrDefault(c => c.Title == title);
+            bool newConcept = concept == null;
+
+            //Update any field on concept that is null
+            var newConceptValue = new ConceptData
+            {
+                Id = concept?.Id ?? GenerateGuid(true),
+                Title = concept?.Title ?? title,
+                Description = concept?.Description ?? summary,
+            };
+            concept = newConceptValue;
+
+            //Add the concept
+            if (newConcept)
+            {
+                graphData.Concepts.Add(concept);
+                Console.WriteLine($"Create a new concept: {concept.Title}({concept.Id})");
+            }
+
+            if (memberOfListName != null)
+            {
+                ConceptListData parentList = graphData.Lists.FirstOrDefault(c => c.Title == memberOfListName);
+
+                if (parentList == null)
                 {
-                    graphData.Memberships.Remove(checkIsStubExists);
-                    Console.WriteLine($"Removed stub membership for {type}: {concept.Title}({concept.Id})");
+                    throw new ArgumentException($"Cant create membership for {concept.Title} to list that does not exist! {memberOfListName}");
                 }
 
-                //update memberships
-                if (conceptId != null) {
-                    var membershipsa = graphData.Memberships.Where(m => m.ConceptId == concept.Id);
-                    foreach(var mem in membershipsa) {
-                        Console.WriteLine($"Updated membership ID {type}: {mem.ConceptId}");
-                        mem.ConceptId = conceptId;  
-                    }
-                    concept.Id = conceptId;
-                }
+                var membership = graphData.Memberships.FirstOrDefault(c => c.ConceptId == concept.Id && c.ListId == parentList.Id);
 
-                if (summary != null)
+                if (membership == null)
                 {
-                    concept.Description = summary;
-                }
+                    membership = new MembershipData()
+                    {
+                        ConceptId = concept.Id,
+                        ListId = parentList.Id,
+                    };
 
-                if (!graphData.Memberships.Any(m => m.ConceptId == concept.Id && m.ListId == listId))
-                {
-                    graphData.Memberships.Add(new MembershipData { ConceptId = concept.Id, ListId = listId });
-                    Console.WriteLine($"Created new membership {type}: concept={concept.Id}, list={listId}");
+                    graphData.Memberships.Add(membership);
                 }
             }
 
@@ -261,10 +298,6 @@ namespace ChtGPTHubBuilder
 
         
     }
-
-
-
-
 }
 
 

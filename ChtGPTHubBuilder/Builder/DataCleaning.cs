@@ -6,7 +6,7 @@ namespace ChtGPTHubBuilder.Builder
 {
 	public static class DataCleaning
 	{
-        public static void ProcessTitleCase(FileInfo file, ArtisticConceptResponse conceptResponse)
+        public static ArtisticConceptResponse ProcessTitleCase(FileInfo file, ArtisticConceptResponse conceptResponse)
         {
             string original = JsonSerializer.Serialize(conceptResponse, new JsonSerializerOptions() { WriteIndented = true });
 
@@ -36,10 +36,13 @@ namespace ChtGPTHubBuilder.Builder
 
 
             string updatedString = JsonSerializer.Serialize(conceptResponse, new JsonSerializerOptions() { WriteIndented = true });
+
             if (!updatedString.Equals(original))
             {
                 File.WriteAllText(file.FullName, updatedString);
             }
+
+            return conceptResponse;
         }
 
         private static string ToCustomTitleCase(string conceptName)
