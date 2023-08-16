@@ -2,8 +2,10 @@
 using System.Globalization;
 using System.Text.Json;
 using ChtGPTHubBuilder.Objects;
+using GraphHub.Server.GitUploader;
 using GraphHub.Shared;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Octokit;
 using static ChtGPTHubBuilder.Builder.Constants;
 
 namespace ChtGPTHubBuilder
@@ -12,7 +14,7 @@ namespace ChtGPTHubBuilder
     {
         public GraphData graphData = new GraphData();
 
-        public GraphData Run()
+        public async Task<GraphData> Run()
         {
             string? pathToGraphDataSource = null;
             //string? pathToGraphData = null;
@@ -37,7 +39,8 @@ namespace ChtGPTHubBuilder
                 graphData = ChtGPTHubBuilder.Builder.Constants.Intitilize();
 
                 //Create the appropriate lists for properties styles and add them under the relevant list.
-                foreach(var concept in graphData.Concepts)
+                //Using weight 3 to target those items
+                foreach(var concept in graphData.Concepts.Where(x=>x.Weight == 3))
                 {
                     var conceptProcessed = CreateOrUpdateConcept(concept.Title, null, false, ArtMediumsListName);
                 }
@@ -77,10 +80,23 @@ namespace ChtGPTHubBuilder
                 fileData.Add(data);
             }
 
-            var initialConcepts = fileData.Select(x => new ConceptData()
+            //todo GET THE DATA FROM GIT AND MERGE IMAGES IN
+            var githubDownloader = new GitJsonLoader("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", "main");
+            githubDownloader.limitGraphs = new List<string>() {"text-to-image"};
+            var githubgraph = await githubDownloader.LoadData();
+            var tti = githubgraph.First().Value;
+
+            var initialConcepts = fileData.Select(x =>
             {
-                Id = x.Id,
-                Title = x.Concept_Name
+                var matchingItem = tti.Concepts.FirstOrDefault(p => p.Title.Equals(x.Concept_Name));
+
+                return new ConceptData()
+                {
+                    Id = x.Id,
+                    Title = x.Concept_Name,
+                    Image = matchingItem?.Image,
+                    Weight = matchingItem?.Weight
+                };
             }).ToList();
 
             graphData.Concepts.AddRange(initialConcepts);
@@ -91,13 +107,15 @@ namespace ChtGPTHubBuilder
                 Console.WriteLine($"Item Name {artisticConcpt.Concept_Name}");
                 Console.WriteLine($"Item ID {artisticConcpt.Id}");
 
-                if (artisticConcpt.Id.Equals("1491"))
+                if (artisticConcpt.Id.Equals("272"))
                 {
                     var i = 5; ;
                 }
 
                 // Process each ArtisticConceptResponse
                 HandleEntityConcept(artisticConcpt);
+
+                var item = graphData.Concepts.FirstOrDefault(x => x.Id == "272");
 
                 var isValid = ChtGPTHubBuilder.Builder.DataValidation.ValidateGraphData(graphData);
                 if (!isValid)
@@ -138,7 +156,7 @@ namespace ChtGPTHubBuilder
                 {
                     foreach (var artist in artConcept.relevant_artists)
                     {
-                        var artistConcept = CreateOrUpdateConcept(artist, null, isEntity: true, memberOfList: UsageTitle(concept.Title));
+                        var artistConcept = CreateOrUpdateConcept(artist, null, isEntity: true, memberOfList: ArtistTitle(concept.Title));
                     }
                 }
             }
@@ -169,7 +187,7 @@ namespace ChtGPTHubBuilder
 
             if (!isEntity)
             {
-                var usage = CreateOrUpdateListInternal(concept.Id, UsageTitle(title), $"List of artists or entities related to the concept '{title}'. {concept.Description}", overrideID: concept.Id + "-U");
+                var usage = CreateOrUpdateListInternal(concept.Id, ArtistTitle(title), $"List of artists or entities related to the concept '{title}'. {concept.Description}", overrideID: concept.Id + "-A");
                 var styles = CreateOrUpdateListInternal(concept.Id, StylesTitle(title), $"List of '{title}' art styles. {concept.Description}", stylesParentName, overrideID: concept.Id + "-S");
             }
 
@@ -181,24 +199,29 @@ namespace ChtGPTHubBuilder
             ConceptListData list = graphData.Lists.FirstOrDefault(c => c.Title == listTitle);
             bool newList = list == null;
 
-            //Update any field on concept that is null
-            var newlist = new ConceptListData
+            if (!newList)
             {
-                Id = list?.Id ?? overrideID ?? GenerateGuid(true),
-                Title = list?.Title ?? listTitle,
-                Description = (list?.Description == null || list.Description.Length < (Description ?? "").Length) ? Description : list?.Description,
-                ParentConceptId = conceptId
-            };
-            list = newlist;
-
-            //Add the concept
-            if (newList)
+                list.Id = list.Id ?? overrideID ?? GenerateGuid(true);
+                list.Title = list.Title ?? listTitle;
+                list.Description = (list.Description == null || list.Description.Length < (Description ?? "").Length) ? Description : list.Description;
+                list.ParentConceptId = conceptId;
+                list.ImageConceptId = conceptId;
+                list.Type = GraphHub.Database.Dto.Enums.ItemTypeEnum.Gallery;
+            }
+            else
             {
+                list = new ConceptListData
+                {
+                    Id = overrideID ?? GenerateGuid(true),
+                    Title = listTitle,
+                    Description = Description,
+                    ParentConceptId = conceptId,
+                    ImageConceptId = conceptId,
+                    Type = GraphHub.Database.Dto.Enums.ItemTypeEnum.Gallery
+                };
                 graphData.Lists.Add(list);
                 Console.WriteLine($"Create a new list: {list.Title}({list.Id})");
             }
-
-            list.ParentConceptId = conceptId;
 
             //Add to the parent list if its not already there as a pull list
             if (parentListId != null)
@@ -235,28 +258,33 @@ namespace ChtGPTHubBuilder
 
         private ConceptData CreateOrUpdateConceptInternal(string title, string? summary, string? memberOfListName = null)
         {
-            if (title == "Bold")
+            if (title == "Banksy")
             {
                 var i = 5;
             }
 
             //Try and find the concept
             ConceptData concept = graphData.Concepts.FirstOrDefault(c => c.Title == title);
+
             bool newConcept = concept == null;
 
-            //Update any field on concept that is null
-            var newConceptValue = new ConceptData
+            if (!newConcept)
             {
-                Id = concept?.Id ?? GenerateGuid(true),
-                Title = concept?.Title ?? title,
-                Description = concept?.Description ?? summary,
-            };
-            concept = newConceptValue;
+                concept.Id = concept.Id ?? GenerateGuid(true);
+                concept.Title = concept.Title ?? title;
+                concept.Description = concept.Description ?? summary;
+            }
+            else
+            {
+                concept = new ConceptData
+                {
+                    Id = GenerateGuid(true),
+                    Title = title,
+                    Description = summary,
+                };
 
-            //Add the concept
-            if (newConcept)
-            {
                 graphData.Concepts.Add(concept);
+
                 Console.WriteLine($"Create a new concept: {concept.Title}({concept.Id})");
             }
 

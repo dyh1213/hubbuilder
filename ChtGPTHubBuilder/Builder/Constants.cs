@@ -15,13 +15,14 @@ namespace ChtGPTHubBuilder.Builder
         private const string steampunkConcept = "271";
         private const string banksyConcept = "272";
 
-        public static string UsageTitle(string title) => $"{title} - Usages";
+        public static string ArtistTitle(string title) => $"{title} - Artists";
         public static string PromptsTitle(string title) => $"{title} - Prompts";
         public static string StylesTitle(string title) => $"{title} - Styles";
 
         public const string ArtStylesName = "Style";
-        public const string ArtEntitiesName = "Entitie";
+        public const string ArtEntitiesName = "Entity";
         public const string ArtMediumsName = "Element";
+
         public const string ArtStylesListName = "Styles";
         public const string ArtEntitiesListName = "Entities";
         public const string ArtMediumsListName = "Elements";
@@ -79,6 +80,7 @@ namespace ChtGPTHubBuilder.Builder
                 var concept = new ConceptData(){};
 
                 graphData.Concepts.Add(concept);
+                concept.Weight = 3;
 
                 switch (item)
                 {
@@ -86,31 +88,61 @@ namespace ChtGPTHubBuilder.Builder
                         concept.Id = $"{ArtPropertyName_Medium}";
                         concept.Title = ArtPropertyName_Medium;
                         concept.Description = "List of artistic mediums used by creators across the world. It spans traditional classics like oil, acrylic, watercolor, and charcoal, alongside contemporary innovations such as digital art, mixed media, and installations. Embrace the diverse array of mediums employed by artists to express their creativity and vision, representing a rich tapestry of human ingenuity in the world of art.";
+                        concept.Image = new ConceptImage()
+                        {
+                            imagePrviewUrl = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_medium_Medium_20230809145924_preview.jpeg",
+                            imageURL = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_medium_Medium_20230809145924.jpeg"
+                        };
                         break;
                     case ListName.Environments:
                         concept.Id = $"{ArtPropertyName_Environment}";
                         concept.Title = ArtPropertyName_Environment;
                         concept.Description = "List of art environments, from urban cityscapes to fantastical realms, post-apocalyptic wastelands to serene nature scenes. Delve into historical eras, futuristic worlds, and underwater wonders, as artists depict captivating backdrops that enrich their artworks with imaginative contexts and emotions. Whether it's the charm of Victorian elegance or the allure of cybernetic futurism, this collection showcases the boundless creativity of human expression through various captivating landscapes.";
+                        concept.Image = new ConceptImage()
+                        {
+                            imagePrviewUrl = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_environment_Environment_20230810103009_preview.jpeg",
+                            imageURL = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_environment_Environment_20230810103009.jpeg"
+                        };
                         break;
                     case ListName.Lightings:
                         concept.Id = $"{ArtPropertyName_Lighting}";
                         concept.Title = ArtPropertyName_Lighting;
                         concept.Description = "List of the diverse lighting styles that breathe life into artworks. From soft morning light to dramatic chiaroscuro, each style plays a crucial role in setting the ambiance and focus. Explore the enchanting glow of natural, artificial, and ultraviolet lights, as well as vibrant and high-contrast illuminations. Delight in surrealistic and electro-illuminated effects, as artists masterfully wield lighting to evoke emotions and accentuate their artistic creations.";
+                        concept.Image = new ConceptImage()
+                        {
+                            imagePrviewUrl = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_lighting_Lighting_20230816095135_preview.jpeg",
+                            imageURL = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_lighting_Lighting_20230816095135.jpeg"
+                        };
                         break;
                     case ListName.Colors:
                         concept.Id = $"{ArtPropertyName_Color}";
                         concept.Title = ArtPropertyName_Color;
                         concept.Description = "This list is a vibrant preview of the expansive world of color. It offers a glimpse into the variety of color schemes, from bold and high-contrast, to subdued and muted, painting a picture of possibilities. It explores the broad spectrum from monochrome to multi-color, and from vintage to modern palettes. You'll encounter warm, cool, natural, and period-specific tones, setting the stage for a more in-depth exploration.";
+                        concept.Image = new ConceptImage()
+                        {
+                            imagePrviewUrl = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_color_Color_20230809185029_preview.jpeg",
+                            imageURL = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_color_Color_20230809185029.jpeg"
+                        };
                         break;
                     case ListName.Moods:
                         concept.Id = $"{ArtPropertyName_Mood}";
                         concept.Title = ArtPropertyName_Mood;
                         concept.Description = "List of the diverse landscape of moods and themes in art. It illustrates a vast range from the playful and whimsical, to the introspective and contemplative, from the joyful and vibrant, to the mysterious and surreal. The list hints at the potential for art to be political, satirical, rebellious, or fantastical, reflecting the complexities of the human experience. Whether you're seeking the calm and tranquil, the edgy and dystopian, or the humorous and quirky, this list provides a glimpse into the powerful moods that art can evoke.";
+                        concept.Image = new ConceptImage()
+                        {
+                            imagePrviewUrl = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_mood_Mood_20230809121238_preview.jpeg",
+                            imageURL = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_mood_Mood_20230809121238.jpeg"
+                        };
                         break;
                     case ListName.Compositions:
                         concept.Id = $"{ArtPropertyName_Composition}";
                         concept.Title = ArtPropertyName_Composition;
                         concept.Description = "List of the diverse tapestry of artistic compositions. From the bold, dynamic and geometric designs to the serene, harmonious and naturalistic forms. It includes abstract and surrealistic patterns, fluid and symmetrical structures, and extends into the detail-oriented world of anatomical, mechanical, and text-based compositions. Discover the artistry in three-dimensional space, layered imagery, or in the simplicity of a monospace canvas. Get specific like an organized grid, the or generic like an expansive landscape.";
+                        concept.Image = new ConceptImage()
+                        {
+                            imagePrviewUrl = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_composition_Composition_20230813173244_preview.jpeg",
+                            imageURL = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_composition_Composition_20230813173244.jpeg"
+                        };
                         break;
                 }
             }
@@ -119,6 +151,7 @@ namespace ChtGPTHubBuilder.Builder
             {
                 var concept = new ConceptData() { };
                 graphData.Concepts.Add(concept);
+
                 var list = new ConceptListData() { };
                 graphData.Lists.Add(list);
 
@@ -128,38 +161,46 @@ namespace ChtGPTHubBuilder.Builder
                         concept.Id = ArtStylesName;
                         concept.Description = "An art style";
                         concept.Title = ArtStylesName;
+                        concept.Image = new ConceptImage()
+                        {
+                            imagePrviewUrl = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_style_Style_20230808110402_preview.jpeg",
+                            imageURL = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_style_Style_20230808110402.jpeg"
+                        };
                         list.Id = "All_" + ArtStylesListName;
-                        list.ParentConceptId = concept.Id;
                         list.Title = ArtStylesListName;
                         list.Description = "List of all art styles pulled from other lists related to specific domains like Painting, Architercture, Graphic Design etc.";
                         break;
                     case ListName.Properties:
                         concept.Id = ArtMediumsName;
-                        concept.Description = "An art medium";
+                        concept.Description = "An art element";
                         concept.Title = ArtMediumsName;
                         concept.Image = new ConceptImage()
                         {
-                            imagePrviewUrl = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_element_Element_20230807192425_preview.jpeg",
-                            imageURL = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_element_Element_20230807192425.jpeg"
+                            imagePrviewUrl = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_element_Element_20230809162556_preview.jpeg",
+                            imageURL = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_element_Element_20230809162556.jpeg"
                         };
                         list.Id = "All_" + ArtMediumsListName;
-                        list.ParentConceptId = concept.Id;
-                        list.ImageConceptId = concept.Id;
                         list.Title = ArtMediumsListName;
-                        list.Description = "List of all elements and techniques that offer a structured way to analyze an image. It includes items such as medium which identifies the tool canvas or material used, environment indicates the setting, lighting style illuminates the subject, color defines the palette used, mood captures the emotional tone, while composition refers to how the image elements are arranged. Each of these attributes can help to understand and describe an image's unique artistic qualities and the intentions behind it.";
+                        list.Description = "List of all elements and techniques that offer a structured way to analyze an image. It includes items such as medium which identifies the tool canvas or material used, environment indicates the setting, lighting style illuminates the subject, color defines the palette used, mood captures the emotional tone, while composition refers to how the image elements are arranged.";
                         break;
                     case ListName.Entities:
                         concept.Id = ArtEntitiesName;
                         concept.Description = "An art entity";
                         concept.Title = ArtEntitiesName;
+                        concept.Image = new ConceptImage()
+                        {
+                            imagePrviewUrl = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_entity_Entity_20230808104516_preview.jpeg",
+                            imageURL = "https://graphhub.blob.core.windows.net/graphhub-images/text-to-image/CON_entity_Entity_20230808104516.jpeg"
+                        };
                         list.Id = "All_" + ArtEntitiesListName;
-                        list.ParentConceptId = concept.Id;
                         list.Title = ArtEntitiesListName;
                         list.Description = "List of entities entities that have a definitive art style, this could be artists from a spefici field or other entities like tv-shows, games, studios etc.";
                         break;
                 }
 
-
+                list.ParentConceptId = concept.Id;
+                list.ImageConceptId = concept.Id;
+                list.Type = GraphHub.Database.Dto.Enums.ItemTypeEnum.Gallery;
             }
 
             var metadata = new GraphHub.Database.Dto.GraphInfo()
